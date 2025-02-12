@@ -128,3 +128,95 @@ public extension Pollux {
         )
     }
 }
+
+public enum OperationResult {
+    case credential(Credential)
+    case forward(type: String, format: String?, payload: Data)
+    case verification(verified: Bool)
+
+    public var credential: Credential? {
+        switch self {
+        case .credential(let credential):
+            return credential
+        default:
+            return nil
+        }
+    }
+
+    public var forwardType: String? {
+        switch self {
+        case .forward(type: let type, format: _, payload: _):
+            return type
+        default:
+            return nil
+        }
+    }
+
+    public var forwardPayload: Data? {
+        switch self {
+        case .forward(type: _, format: _, payload: let payload):
+            return payload
+        default:
+            return nil
+        }
+    }
+
+    public var isVerified: Bool? {
+        switch self {
+        case .verification(verified: let verified):
+            return verified
+        default:
+            return nil
+        }
+    }
+}
+
+public protocol PolluxPlugin {
+    var version: String { get }
+    var supportedOperations: [String] { get }
+
+    func requiredOptions(operation: String) -> [CredentialOperationsOptions]
+
+    func operation(type: String, format: String?, payload: Data?, options: [CredentialOperationsOptions]) async throws -> OperationResult
+}
+
+public protocol CredentialPlugin: PolluxPlugin {
+    var credentialType: String { get }
+
+    func createCredential(_ credentialData: Data) async throws -> Credential
+    func credential(_ imported: Data) async throws -> Credential
+}
+
+public protocol ProtocolPlugin: PolluxPlugin {
+    var supportedCredentialTypes: [String] { get }
+}
+
+public protocol ProtocolCreateIssuancePlugin: ProtocolPlugin {
+    var protocolType: String { get }
+    var version: String { get }
+
+    // This is just a mock still to define
+    func issueOffer(withClaims: [ClaimFilter], issuer: DID, subject: DID) async throws -> OperationResult
+    // This is just a mock still to define
+    func issueCredential(withClaims: [ClaimFilter], issuer: DID, subject: DID) async throws -> OperationResult
+}
+
+public protocol ProtocolCreatePresentationPlugin: ProtocolPlugin {
+    var protocolType: String { get }
+    var version: String { get }
+
+    // This needs to be mocked still
+    func requestPresentation(withClaims: [ClaimFilter]) async throws -> OperationResult
+}
+
+extension ProtocolPlugin {
+    var credentialIssuance: ProtocolCreateIssuancePlugin? {
+        return self as? ProtocolCreateIssuancePlugin
+    }
+}
+
+extension ProtocolPlugin {
+    var credentialPresentation: ProtocolCreatePresentationPlugin? {
+        return self as? ProtocolCreatePresentationPlugin
+    }
+}

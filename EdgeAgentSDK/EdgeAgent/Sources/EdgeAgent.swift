@@ -15,6 +15,7 @@ public class EdgeAgent {
     public let castor: Castor
     public let pluto: Pluto
     public let pollux: Pollux & CredentialImporter
+    public let credentialPlugins: [PolluxPlugin]
 
     public static func setupLogging(logLevels: [LogComponent: LogLevel]) {
         SDKLogger.logLevels = logLevels
@@ -35,12 +36,14 @@ public class EdgeAgent {
         castor: Castor,
         pluto: Pluto,
         pollux: Pollux & CredentialImporter,
+        credentialPlugins: [PolluxPlugin] = [],
         seed: Seed? = nil
     ) {
         self.apollo = apollo
         self.castor = castor
         self.pluto = pluto
         self.pollux = pollux
+        self.credentialPlugins = credentialPlugins
         self.seed = seed ?? apollo.createRandomSeed().seed
     }
 

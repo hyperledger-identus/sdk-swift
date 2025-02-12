@@ -146,15 +146,22 @@ public extension DIDCommAgent {
             throw EdgeAgentError.invalidAttachmentFormat(nil)
         }
 
-        let credential = try await pollux.parseCredential(
-            type: format,
-            credentialPayload: jsonData,
+        guard let plugin = edgeAgent.credentialPlugins.first( where: { $0.supportedOperations.contains(message.type)
+        }) else {
+            throw EdgeAgentError.invalidAttachmentFormat(nil)
+        }
+        guard let credential = try await plugin.operation(
+            type: message.type,
+            format: attachment.format,
+            payload: jsonData,
             options: [
                 .linkSecret(id: "", secret: linkSecretString),
                 .credentialDefinitionDownloader(downloader: downloader),
                 .schemaDownloader(downloader: downloader)
             ]
-        )
+        ).credential else {
+            throw EdgeAgentError.invalidAttachmentFormat(nil)
+        }
 
         guard let storableCredential = credential.storable else {
             return credential

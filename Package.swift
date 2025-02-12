@@ -129,6 +129,20 @@ let package = Package(
             ],
             path: "EdgeAgentSDK/Pollux/Sources"
         ),
+//        .target(
+//            name: "JWTPlugin",
+//            dependencies: [
+//                "Domain",
+//                "Core",
+//                "jose-swift",
+////                "Sextant",
+////                "eudi-lib-sdjwt-swift",
+//                .product(name: "Gzip", package: "GzipSwift"),
+////                .product(name: "AnoncredsSwift", package: "anoncreds-rs"),
+////                .product(name: "JSONSchema", package: "JSONSchema.swift")
+//            ],
+//            path: "EdgeAgentSDK/Pollux/Sources"
+//        ),
         .testTarget(
             name: "PolluxTests",
             dependencies: ["Pollux", "Apollo", "Castor", "EdgeAgent"],
@@ -173,6 +187,7 @@ let package = Package(
                 "Domain",
                 "Builders",
                 "Core",
+                "jose-swift",
                 .product(name: "OpenID4VCI", package: "eudi-lib-ios-openid4vci-swift")
             ],
             path: "EdgeAgentSDK/EdgeAgent/Sources"
