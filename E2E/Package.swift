@@ -16,7 +16,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-openapi-runtime", .upToNextMinor(from: "1.8.0")),
         .package(url: "https://github.com/apple/swift-openapi-urlsession", .upToNextMinor(from: "1.0.2")),
         .package(url: "https://github.com/nschum/SwiftHamcrest", .upToNextMajor(from: "2.3.0")),
-        .package(path: "../")
+        .package(name: "edge-agent", path: "../")
     ],
     targets: [
         .target(
