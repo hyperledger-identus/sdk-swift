@@ -1,5 +1,5 @@
 import Foundation
-import Hamcrest
+import SwiftHamcrest
 
 func reportResult(_ possibleResult: String?, message: String? = nil, file: StaticString = #file, line: UInt = #line)
     -> String {

@@ -1,5 +1,5 @@
 import Foundation
-import Hamcrest
+import SwiftHamcrest
 import TestFramework
 
 class CloudAgentWorkflow {

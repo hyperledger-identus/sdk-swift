@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-import Hamcrest
+import SwiftHamcrest
 
 open class TestConfiguration: ITestConfiguration {
     public static var shared = { instance! }

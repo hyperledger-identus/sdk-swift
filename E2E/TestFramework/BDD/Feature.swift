@@ -1,7 +1,7 @@
 
 import Foundation
 import XCTest
-import Hamcrest
+import SwiftHamcrest
 
 open class Feature: XCTestCase {
     let id: String = UUID().uuidString

@@ -4,7 +4,7 @@ import EdgeAgent
 import XCTest
 import PeerDID
 import Combine
-import Hamcrest
+import SwiftHamcrest
 import TestFramework
 
 class EdgeAgentWorkflow {
