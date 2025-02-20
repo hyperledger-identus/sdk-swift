@@ -180,9 +180,31 @@ public extension DIDCommAgent {
             .first()
             .await()
 
-        guard let storedPrivateKey = didInfo?.privateKeys.first else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
+        let downloader = DownloadDataWithResolver(castor: castor)
+        guard
+            let attachment = offer.attachments.first,
+            let offerFormat = attachment.format
+        else {
+            throw PolluxError.unsupportedIssuedMessage
+        }
 
-        let privateKey = try await apollo.restorePrivateKey(storedPrivateKey)
+        let privateKey: PrivateKey
+        switch offerFormat {
+        case "vc+sd-jwt":
+            guard let storedPrivateKey = didInfo?
+                .privateKeys
+                .first(where: { $0.restorationIdentifier.contains("ed25519") })
+            else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
+
+            privateKey = try await apollo.restorePrivateKey(storedPrivateKey)
+        default:
+            guard let storedPrivateKey = didInfo?
+                .privateKeys
+                .first(where: { $0.restorationIdentifier.contains("secp256k1") })
+            else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
+
+            privateKey = try await apollo.restorePrivateKey(storedPrivateKey)
+        }
 
         guard
             let exporting = privateKey.exporting,
@@ -193,14 +215,6 @@ public extension DIDCommAgent {
         guard
             let linkSecretString = String(data: restored.raw, encoding: .utf8)
         else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
-
-        let downloader = DownloadDataWithResolver(castor: castor)
-        guard
-            let attachment = offer.attachments.first,
-            let offerFormat = attachment.format
-        else {
-            throw PolluxError.unsupportedIssuedMessage
-        }
 
         let jsonData: Data
         switch attachment.data {

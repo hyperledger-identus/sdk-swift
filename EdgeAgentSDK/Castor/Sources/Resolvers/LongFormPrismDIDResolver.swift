@@ -112,25 +112,34 @@ struct LongFormPrismDIDResolver: DIDResolverDomain {
                 serviceEndpoint: $0.serviceEndpoint.map { .init(uri: $0) }
             )
         }
+        let groupByPurpose = Dictionary(
+            // Per specification master keys and revocation keys should not be in the did document
+            grouping: publicKeys.filter { $0.usage != .masterKey && $0.usage != .revocationKey },
+            by: { $0.usage }
+        )
+        let decodedPublicKeys = groupByPurpose.flatMap { (key, value) in
+            value
+                .sorted(by: { $0.id < $1.id } )
+                .enumerated()
+                .map {
+                    let didUrl = DIDUrl(
+                        did: did,
+                        fragment: $0.element.usage.id(index: $0.offset)
+                    )
 
-        let decodedPublicKeys = publicKeys.enumerated().map {
-            let didUrl = DIDUrl(
-                did: did,
-                fragment: $0.element.usage.id(index: $0.offset - 1)
-            )
+                    let method = DIDDocument.VerificationMethod(
+                        id: didUrl,
+                        controller: did,
+                        type: $0.element.keyData.getProperty(.curve) ?? "",
+                        publicKeyMultibase: $0.element.keyData.raw.base64EncodedString()
+                    )
 
-            let method = DIDDocument.VerificationMethod(
-                id: didUrl,
-                controller: did,
-                type: $0.element.keyData.getProperty(.curve) ?? "",
-                publicKeyMultibase: $0.element.keyData.raw.base64EncodedString()
-            )
-
-            return PublicKeyDecoded(
-                id: didUrl.string,
-                keyType: .init(usage: $0.element.usage),
-                method: method
-            )
+                    return PublicKeyDecoded(
+                        id: didUrl.string,
+                        keyType: .init(usage: $0.element.usage),
+                        method: method
+                    )
+                }
         }
 
         return (decodedPublicKeys, services)

@@ -140,7 +140,13 @@ final class CredentialListViewModelImpl: CredentialListViewModel {
                 }
                 switch message.piuri {
                 case ProtocolTypes.didcommOfferCredential3_0.rawValue:
-                    let newPrismDID = try await self.agent.createNewPrismDID()
+                    var authenticationPrivateKey = try apollo.createPrivateKey(parameters: [
+                        KeyProperties.type.rawValue: "EC",
+                        KeyProperties.curve.rawValue: KnownKeyCurves.ed25519.rawValue
+                    ])
+                    let newPrismDID = try await self.agent.createNewPrismDID(
+                        keys: [(.authentication, authenticationPrivateKey)]
+                    )
                     guard let requestCredential = try await self.agent.prepareRequestCredentialWithIssuer(
                         did: newPrismDID,
                         offer: try OfferCredential3_0(fromMessage: message)

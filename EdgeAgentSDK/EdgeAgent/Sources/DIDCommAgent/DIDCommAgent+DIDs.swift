@@ -12,11 +12,13 @@ public extension DIDCommAgent {
     ///   - services: an array of services associated to the DID
     /// - Returns: The new created DID
     func createNewPrismDID(
+        keys: [(KeyPurpose, PrivateKey)] = [],
         keyPathIndex: Int? = nil,
         alias: String? = nil,
         services: [DIDDocument.Service] = []
     ) async throws -> DID {
         try await edgeAgent.createNewPrismDID(
+            keys: keys,
             keyPathIndex: keyPathIndex,
             alias: alias,
             services: services

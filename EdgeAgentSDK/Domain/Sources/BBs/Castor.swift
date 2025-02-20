@@ -1,5 +1,15 @@
 import Foundation
 
+public enum KeyPurpose: String, Hashable, Equatable, CaseIterable {
+    case master
+    case issue
+    case capabilityDelegation
+    case capabilityInvocation
+    case authentication
+    case revocation
+    case agreement
+}
+
 /// The Castor protocol defines the set of decentralized identifier (DID) operations that are used in the Atala PRISM architecture. It provides a way for users to create, manage, and control their DIDs and associated cryptographic keys.
 public protocol Castor {
     /// parseDID parses a string representation of a Decentralized Identifier (DID) into a DID object. This function may throw an error if the string is not a valid DID.
@@ -8,6 +18,18 @@ public protocol Castor {
     /// - Returns: The DID object
     /// - Throws: An error if the string is not a valid DID
     func parseDID(str: String) throws -> DID
+    
+    /// createDID creates a DID for a method using a given an array of public keys and list of services. This function may throw an error.
+    /// - Parameters:
+    ///   - method: DID Method to use (ex: prism, peer)
+    ///   - keys: An array of Tuples with the public key and the key purpose
+    ///   - services: The list of services
+    /// - Returns: The created DID
+    func createDID(
+        method: DIDMethod,
+        keys: [(KeyPurpose, PublicKey)],
+        services: [DIDDocument.Service]
+    ) throws -> DID
 
     /// createPrismDID creates a DID for a prism (a device or server that acts as a DID owner and controller) using a given master public key and list of services. This function may throw an error if the master public key or services are invalid.
     ///

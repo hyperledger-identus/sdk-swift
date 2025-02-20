@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -11,6 +11,16 @@
 		EE0E1FB229473B10003CD7D5 /* SteradianBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = EE0E1FAE29473B10003CD7D5 /* SteradianBold.otf */; };
 		EE0E1FB329473B10003CD7D5 /* SteradianMedium.otf in Resources */ = {isa = PBXBuildFile; fileRef = EE0E1FAF29473B10003CD7D5 /* SteradianMedium.otf */; };
 		EE0E1FB429473B10003CD7D5 /* SteradianRegular.otf in Resources */ = {isa = PBXBuildFile; fileRef = EE0E1FB029473B10003CD7D5 /* SteradianRegular.otf */; };
+		EE26FD972D720C1A00292E6C /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = EE26FD962D720C1A00292E6C /* Apollo */; };
+		EE26FD992D720C1A00292E6C /* Authenticate in Frameworks */ = {isa = PBXBuildFile; productRef = EE26FD982D720C1A00292E6C /* Authenticate */; };
+		EE26FD9B2D720C1A00292E6C /* Builders in Frameworks */ = {isa = PBXBuildFile; productRef = EE26FD9A2D720C1A00292E6C /* Builders */; };
+		EE26FD9D2D720C1A00292E6C /* Castor in Frameworks */ = {isa = PBXBuildFile; productRef = EE26FD9C2D720C1A00292E6C /* Castor */; };
+		EE26FD9F2D720C1A00292E6C /* Domain in Frameworks */ = {isa = PBXBuildFile; productRef = EE26FD9E2D720C1A00292E6C /* Domain */; };
+		EE26FDA12D720C1A00292E6C /* EdgeAgent in Frameworks */ = {isa = PBXBuildFile; productRef = EE26FDA02D720C1A00292E6C /* EdgeAgent */; };
+		EE26FDA32D720C1A00292E6C /* EdgeAgentSDK in Frameworks */ = {isa = PBXBuildFile; productRef = EE26FDA22D720C1A00292E6C /* EdgeAgentSDK */; };
+		EE26FDA52D720C1A00292E6C /* Mercury in Frameworks */ = {isa = PBXBuildFile; productRef = EE26FDA42D720C1A00292E6C /* Mercury */; };
+		EE26FDA72D720C1A00292E6C /* Pluto in Frameworks */ = {isa = PBXBuildFile; productRef = EE26FDA62D720C1A00292E6C /* Pluto */; };
+		EE26FDA92D720C1A00292E6C /* Pollux in Frameworks */ = {isa = PBXBuildFile; productRef = EE26FDA82D720C1A00292E6C /* Pollux */; };
 		EE2D40972ACC470100CF9446 /* CredentialDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2D40962ACC470100CF9446 /* CredentialDetailViewModel.swift */; };
 		EE3813502938D5B100A3A710 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = EE38134F2938D5B100A3A710 /* Apollo */; };
 		EE3813522938D5B100A3A710 /* Authenticate in Frameworks */ = {isa = PBXBuildFile; productRef = EE3813512938D5B100A3A710 /* Authenticate */; };
@@ -282,11 +292,21 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EE26FD9D2D720C1A00292E6C /* Castor in Frameworks */,
 				EE38135A2938D5B100A3A710 /* Mercury in Frameworks */,
+				EE26FDA32D720C1A00292E6C /* EdgeAgentSDK in Frameworks */,
 				EE3813582938D5B100A3A710 /* Domain in Frameworks */,
 				EE38135E2938D5B100A3A710 /* Pollux in Frameworks */,
 				EEC5A8392BEA5E3A00AED928 /* EdgeAgent in Frameworks */,
 				EE38135C2938D5B100A3A710 /* Pluto in Frameworks */,
+				EE26FDA12D720C1A00292E6C /* EdgeAgent in Frameworks */,
+				EE26FD992D720C1A00292E6C /* Authenticate in Frameworks */,
+				EE26FDA72D720C1A00292E6C /* Pluto in Frameworks */,
+				EE26FDA52D720C1A00292E6C /* Mercury in Frameworks */,
+				EE26FD9B2D720C1A00292E6C /* Builders in Frameworks */,
+				EE26FD9F2D720C1A00292E6C /* Domain in Frameworks */,
+				EE26FDA92D720C1A00292E6C /* Pollux in Frameworks */,
+				EE26FD972D720C1A00292E6C /* Apollo in Frameworks */,
 				EE3813542938D5B100A3A710 /* Builders in Frameworks */,
 				EE3813502938D5B100A3A710 /* Apollo in Frameworks */,
 				EE3813562938D5B100A3A710 /* Castor in Frameworks */,
@@ -842,6 +862,16 @@
 				EE38135B2938D5B100A3A710 /* Pluto */,
 				EE38135D2938D5B100A3A710 /* Pollux */,
 				EEC5A8382BEA5E3A00AED928 /* EdgeAgent */,
+				EE26FD962D720C1A00292E6C /* Apollo */,
+				EE26FD982D720C1A00292E6C /* Authenticate */,
+				EE26FD9A2D720C1A00292E6C /* Builders */,
+				EE26FD9C2D720C1A00292E6C /* Castor */,
+				EE26FD9E2D720C1A00292E6C /* Domain */,
+				EE26FDA02D720C1A00292E6C /* EdgeAgent */,
+				EE26FDA22D720C1A00292E6C /* EdgeAgentSDK */,
+				EE26FDA42D720C1A00292E6C /* Mercury */,
+				EE26FDA62D720C1A00292E6C /* Pluto */,
+				EE26FDA82D720C1A00292E6C /* Pollux */,
 			);
 			productName = AtalaPrismWalletDemo;
 			productReference = EEE61FB62937CA280053AE52 /* AtalaPrismWalletDemo.app */;
@@ -872,7 +902,7 @@
 			);
 			mainGroup = EEE61FAD2937CA280053AE52;
 			packageReferences = (
-				EE86C3C82CF5EC750072BEB7 /* XCRemoteSwiftPackageReference "identus-edge-agent-sdk-swift" */,
+				EE26FD952D720C1A00292E6C /* XCLocalSwiftPackageReference "../../../atala-prism-wallet-sdk-swift" */,
 			);
 			productRefGroup = EEE61FB72937CA280053AE52 /* Products */;
 			projectDirPath = "";
@@ -1234,18 +1264,54 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		EE86C3C82CF5EC750072BEB7 /* XCRemoteSwiftPackageReference "identus-edge-agent-sdk-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/hyperledger/identus-edge-agent-sdk-swift";
-			requirement = {
-				kind = exactVersion;
-				version = 7.0.0;
-			};
+/* Begin XCLocalSwiftPackageReference section */
+		EE26FD952D720C1A00292E6C /* XCLocalSwiftPackageReference "../../../atala-prism-wallet-sdk-swift" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../../../atala-prism-wallet-sdk-swift";
 		};
-/* End XCRemoteSwiftPackageReference section */
+/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		EE26FD962D720C1A00292E6C /* Apollo */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Apollo;
+		};
+		EE26FD982D720C1A00292E6C /* Authenticate */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Authenticate;
+		};
+		EE26FD9A2D720C1A00292E6C /* Builders */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Builders;
+		};
+		EE26FD9C2D720C1A00292E6C /* Castor */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Castor;
+		};
+		EE26FD9E2D720C1A00292E6C /* Domain */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Domain;
+		};
+		EE26FDA02D720C1A00292E6C /* EdgeAgent */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = EdgeAgent;
+		};
+		EE26FDA22D720C1A00292E6C /* EdgeAgentSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = EdgeAgentSDK;
+		};
+		EE26FDA42D720C1A00292E6C /* Mercury */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Mercury;
+		};
+		EE26FDA62D720C1A00292E6C /* Pluto */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Pluto;
+		};
+		EE26FDA82D720C1A00292E6C /* Pollux */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Pollux;
+		};
 		EE38134F2938D5B100A3A710 /* Apollo */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Apollo;

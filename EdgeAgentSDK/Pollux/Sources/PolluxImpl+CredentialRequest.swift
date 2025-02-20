@@ -146,7 +146,7 @@ extension PolluxImpl {
             throw PolluxError.requiresExportableKeyForOperation(operation: "Create Credential Request")
         }
 
-        return try await CreateJWTCredentialRequest.create(didStr: did.string, key: exportableKey, offerData: offerData)
+        return try await CreateSDJWTCredentialRequest.create(didStr: did.string, key: exportableKey, offerData: offerData)
     }
 
     private func processAnoncredsCredentialRequest(
