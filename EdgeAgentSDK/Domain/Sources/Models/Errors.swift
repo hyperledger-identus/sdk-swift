@@ -377,6 +377,9 @@ public enum CastorError: KnownPrismError {
     /// An error case representing inability to retrieve the public key from a document.
     case cannotRetrievePublicKeyFromDocument
 
+    /// An error case representing that a master key was not provided or that it had more than one
+    case requiresOneAndJustOneMasterKey
+
     /// The error code returned by the server.
     public var code: Int {
         switch self {
@@ -400,6 +403,8 @@ public enum CastorError: KnownPrismError {
             return 29
         case .cannotRetrievePublicKeyFromDocument:
             return 30
+        case .requiresOneAndJustOneMasterKey:
+            return 31
         }
     }
 
@@ -432,6 +437,8 @@ public enum CastorError: KnownPrismError {
             return "No resolvers in castor are able to resolve the method \(method), please provide a resolver"
         case .cannotRetrievePublicKeyFromDocument:
             return "The public keys in the DIDDocument are not in multibase or the multibase is invalid"
+        case .requiresOneAndJustOneMasterKey:
+            return "The array contains none or more than one master key"
         }
     }
 }

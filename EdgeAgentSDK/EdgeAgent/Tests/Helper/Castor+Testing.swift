@@ -16,6 +16,11 @@ struct CastorStub: Castor {
         return parseDIDResponse
     }
 
+    func createDID(method: DIDMethod, keys: [(KeyPurpose, any PublicKey)], services: [DIDDocument.Service]) throws -> DID {
+        guard throwCreateDIDError == nil else { throw throwCreateDIDError! }
+        return createDIDResponse
+    }
+
     func createPrismDID(masterPublicKey: PublicKey, services: [DIDDocument.Service]) throws -> DID {
         guard throwCreateDIDError == nil else { throw throwCreateDIDError! }
         return createDIDResponse

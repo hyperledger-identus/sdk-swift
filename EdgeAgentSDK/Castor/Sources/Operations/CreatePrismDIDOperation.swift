@@ -5,29 +5,33 @@ import Foundation
 struct CreatePrismDIDOperation {
     private let method: DIDMethod = "prism"
     let apollo: Apollo
-    let masterPublicKey: PublicKey
+    let keys: [(KeyPurpose, PublicKey)]
     let services: [DIDDocument.Service]
 
     func compute() throws -> DID {
         var operation = Io_Iohk_Atala_Prism_Protos_AtalaOperation()
-        guard let masterKeyCurve = masterPublicKey.getProperty(.curve) else {
-            throw CastorError.invalidPublicKeyCoding(didMethod: "prism", curve: "no curve")
+        guard keys.count(where: { $0.0 == .master} ) == 1 else {
+            throw CastorError.requiresOneAndJustOneMasterKey
         }
+        let groupByPurpose = Dictionary(grouping: keys, by: { $0.0 })
         operation.createDid = try createDIDAtalaOperation(
-            publicKeys: [PrismDIDPublicKey(
-                apollo: apollo,
-                id: PrismDIDPublicKey.Usage.authenticationKey.defaultId,
-                curve: masterKeyCurve,
-                usage: .authenticationKey,
-                keyData: masterPublicKey
-            ),
-            PrismDIDPublicKey(
-                apollo: apollo,
-                id: PrismDIDPublicKey.Usage.masterKey.defaultId,
-                curve: masterKeyCurve,
-                usage: .masterKey,
-                keyData: masterPublicKey
-            )],
+            publicKeys: groupByPurpose.flatMap { (key, value) in
+                try value
+                    .sorted(by: { $0.1.identifier < $1.1.identifier } )
+                    .enumerated()
+                    .map {
+                        guard let curve = $0.element.1.getProperty(.curve) else {
+                            throw CastorError.invalidPublicKeyCoding(didMethod: "prism", curve: "no curve")
+                        }
+                        return PrismDIDPublicKey(
+                            apollo: apollo,
+                            id: key.toPrismDIDKeyPurpose().id(index: $0.offset),
+                            curve: curve,
+                            usage: key.toPrismDIDKeyPurpose(),
+                            keyData: $0.element.1
+                        )
+                    }
+            },
             services: services
         )
         return try createLongFormFromOperation(method: method, atalaOperation: operation)
@@ -66,5 +70,26 @@ struct CreatePrismDIDOperation {
             ]
         )
         return DID(method: method, methodId: methodSpecificId.description)
+    }
+}
+
+extension KeyPurpose {
+    func toPrismDIDKeyPurpose() -> PrismDIDPublicKey.Usage {
+        switch self {
+        case .master:
+            return .masterKey
+        case .issue:
+            return .issuingKey
+        case .authentication:
+            return .authenticationKey
+        case .capabilityDelegation:
+            return .capabilityDelegationKey
+        case .capabilityInvocation:
+            return .capabilityInvocationKey
+        case .agreement:
+            return .keyAgreementKey
+        case .revocation:
+            return .revocationKey
+        }
     }
 }
