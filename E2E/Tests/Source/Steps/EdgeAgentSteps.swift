@@ -98,14 +98,14 @@ class EdgeAgentSteps: Steps {
         try await EdgeAgentWorkflow.createBackup(edgeAgent: edgeAgent)
     }
     
-    @Step("a new SDK can be restored from {actor}")
-    var aNewSdkCanBeRestoredFromEdgeAgent = { (edgeAgent: Actor) in
-        try await EdgeAgentWorkflow.createNewWalletFromBackup(edgeAgent: edgeAgent)
+    @Step("a new {actor} can be restored from {actor}")
+    var aNewSdkCanBeRestoredFromEdgeAgent = { (restoredAgent: Actor, edgeAgent: Actor) in
+        try await EdgeAgentWorkflow.createNewWalletFromBackup(restoredAgent: restoredAgent, edgeAgent: edgeAgent)
     }
     
-    @Step("a new SDK cannot be restored from {actor} with wrong seed")
-    var aNewSdkCannotBeRestoredFromEdgeAgentWithWrongSeed = { (edgeAgent: Actor) in
-        try await EdgeAgentWorkflow.createNewWalletFromBackupWithWrongSeed(edgeAgent: edgeAgent)
+    @Step("a new {actor} cannot be restored from {actor} with wrong seed")
+    var aNewSdkCannotBeRestoredFromEdgeAgentWithWrongSeed = { (restoredAgent: Actor, edgeAgent: Actor) in
+        try await EdgeAgentWorkflow.createNewWalletFromBackupWithWrongSeed(restoredAgent: restoredAgent, edgeAgent: edgeAgent)
     }
     
     @Step("{actor} creates '{int}' peer DIDs")

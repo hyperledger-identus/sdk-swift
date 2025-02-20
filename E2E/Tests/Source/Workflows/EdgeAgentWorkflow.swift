@@ -190,24 +190,24 @@ class EdgeAgentWorkflow {
         try await edgeAgent.remember(key: "seed", value: seed)
     }
     
-    static func createNewWalletFromBackup(edgeAgent: Actor) async throws {
+    static func createNewWalletFromBackup(restoredAgent: Actor, edgeAgent: Actor) async throws {
         let backup: String = try await edgeAgent.recall(key: "backup")
         let seed: Seed = try await edgeAgent.recall(key: "seed")
-        let walletSdk = DidcommAgentAbility()
-        try await walletSdk.createSdk(seed: seed)
-        try await walletSdk.didcommAgent.edgeAgent.recoverWallet(encrypted: backup)
-        try await walletSdk.didcommAgent.start()
-        try await walletSdk.didcommAgent.stop()
+        try await restoredAgent
+            .whoCanUse(DidcommAgentAbility(seed: seed))
+            .using(ability: DidcommAgentAbility.self, action: "recover wallet")
+            .didcommAgent.edgeAgent.recoverWallet(encrypted: backup)
     }
     
-    static func createNewWalletFromBackupWithWrongSeed(edgeAgent: Actor) async throws {
+    static func createNewWalletFromBackupWithWrongSeed(restoredAgent: Actor, edgeAgent: Actor) async throws {
         let backup: String = try await edgeAgent.recall(key: "backup")
         let seed = DidcommAgentAbility.wrongSeed
         
         do {
-            let walletSdk = DidcommAgentAbility()
-            try await walletSdk.createSdk(seed: seed)
-            try await walletSdk.didcommAgent.edgeAgent.recoverWallet(encrypted: backup)
+            try await restoredAgent
+                .whoCanUse(DidcommAgentAbility(seed: seed))
+                .using(ability: DidcommAgentAbility.self, action: "recover wallet")
+                .didcommAgent.edgeAgent.recoverWallet(encrypted: backup)
             XCTFail("SDK should not be able to restore with wrong seed phrase.")
         } catch {
         }
@@ -219,7 +219,6 @@ class EdgeAgentWorkflow {
                 .didcommAgent.createNewPeerDID(updateMediator: true)
             try await edgeAgent.remember(key: "lastPeerDid", value: did)
         }
-        
     }
     
     static func createPrismDids(edgeAgent: Actor, numberOfDids: Int) async throws {
@@ -231,12 +230,10 @@ class EdgeAgentWorkflow {
     static func backupAndRestoreToNewAgent(newAgent: Actor, oldAgent: Actor) async throws {
         let backup: String = try await oldAgent.recall(key: "backup")
         let seed: Seed = try await oldAgent.recall(key: "seed")
-        let walletSdk = DidcommAgentAbility()
-        try await walletSdk.createSdk(seed: seed)
-        try await walletSdk.didcommAgent.edgeAgent.recoverWallet(encrypted: backup)
-        try await walletSdk.startSdk()
-        walletSdk.isInitialized = true
-        _ = newAgent.whoCanUse(walletSdk)
+        _ = newAgent.whoCanUse(DidcommAgentAbility(seed: seed))
+        try await newAgent
+            .using(ability: DidcommAgentAbility.self, action: "recovers wallet")
+            .didcommAgent.edgeAgent.recoverWallet(encrypted: backup)
     }
     
     static func newAgentShouldMatchOldAgent(newAgent: Actor, oldAgent: Actor) async throws {

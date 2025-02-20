@@ -8,6 +8,7 @@ import Core
 import TestFramework
 
 class DidcommAgentAbility: Ability {
+    let uuid = UUID().uuidString
     static let defaultSeed: Seed = {
         let byteArray: [UInt8] = [69, 191, 35, 232, 213, 102, 3, 93, 180, 106, 224, 144, 79, 171, 79, 223, 154, 217, 235, 232, 96, 30, 248, 92, 100, 38, 38, 42, 101, 53, 2, 247, 56, 111, 148, 220, 237, 122, 15, 120, 55, 82, 89, 150, 35, 45, 123, 135, 159, 140, 52, 127, 239, 148, 150, 109, 86, 145, 77, 109, 47, 60, 20, 16]
         return Seed(value: Data(byteArray))
@@ -22,7 +23,7 @@ class DidcommAgentAbility: Ability {
         return actor
     }()
     let abilityName: String = "edge-agent sdk"
-    var isInitialized: Bool = false
+    private var initialized: Bool = false
     
     var credentialOfferStack: [Message] = []
     var issueCredentialStack: [Message] = []
@@ -37,19 +38,31 @@ class DidcommAgentAbility: Ability {
         return didcommAgent
     }()
 
-    required init() {}
+    let seed: Seed
+
+    required convenience init() {
+        self.init(seed: DidcommAgentAbility.defaultSeed)
+    }
+    
+    init(seed: Seed) {
+        self.seed = seed
+    }
+
+    func isInitialized() -> Bool {
+        return self.initialized
+    }
     
     func initialize() async throws {
         try await createSdk()
         try await startSdk()
-        isInitialized = true
+        self.initialized = true
     }
     
     func setActor(_ actor: Actor) {
         self.actor = actor
     }
     
-    func createSdk(seed: Seed = defaultSeed) async throws {
+    private func createSdk() async throws {
         let mediatorDID = try await DidcommAgentAbility.getPrismMediatorDid()
         
         let apollo = ApolloBuilder().build()
@@ -94,7 +107,7 @@ class DidcommAgentAbility: Ability {
         )
     }
     
-    func startSdk() async throws {
+    private func startSdk() async throws {
         try await didcommAgent.start()
         didcommAgent.handleReceivedMessagesEvents()
             .sink(
@@ -129,16 +142,16 @@ class DidcommAgentAbility: Ability {
                 }
             )
             .store(in: &cancellables)
-        
+
         didcommAgent.startFetchingMessages()
     }
     
     func tearDown() async throws {
-        if (!isInitialized) {
-            return
+        if (initialized) {
+            didcommAgent.stopFetchingMessages()
+            try await didcommAgent.stop()
         }
-        didcommAgent.stopFetchingMessages()
-        try await didcommAgent.stop()
+        self.initialized = false
     }
     
     static private func getPrismMediatorDid() async throws -> DID {

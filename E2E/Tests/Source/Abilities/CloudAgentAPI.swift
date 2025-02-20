@@ -5,21 +5,27 @@ import HTTPTypes
 import TestFramework
 
 class CloudAgentAPI: Ability {
+    let uuid = UUID().uuidString
     lazy var actor: Actor = {
         return actor
     }()
     let abilityName: String = "identus cloud-agent api"
-    var isInitialized: Bool = false
+
+    private var initialized: Bool = false
     
     private lazy var transport: URLSessionTransport = { return transport }()
     private lazy var client: Client = { return client }()
     
     required init() {}
     
+    func isInitialized() -> Bool {
+        return initialized
+    }
+
     func initialize() async throws {
         self.actor = actor
         createClient(StepReporterMiddleware(actor.name))
-        isInitialized = true
+        self.initialized = true
     }
     
     func setActor(_ actor: Actor) {

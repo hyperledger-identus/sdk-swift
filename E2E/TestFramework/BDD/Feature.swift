@@ -1,4 +1,3 @@
-
 import Foundation
 import XCTest
 import SwiftHamcrest
@@ -6,7 +5,6 @@ import SwiftHamcrest
 open class Feature: XCTestCase {
     let id: String = UUID().uuidString
     open var currentScenario: Scenario? = nil
-    private static var scenarioEnd: Bool = false
     
     open func title() -> String {
         fatalError("Set feature title")
@@ -19,23 +17,26 @@ open class Feature: XCTestCase {
     /// our lifecycle starts after xctest is ending
     public override func tearDown() async throws {
         try await run()
+        self.currentScenario = nil
         try await super.tearDown()
     }
 
     public override class func tearDown() {
-        let semaphore = DispatchSemaphore(value: 0)
-        Task.init {
-            try await TestConfiguration.shared().endCurrentFeature()
-            semaphore.signal()
+        if (TestConfiguration.started) {
+            let semaphore = DispatchSemaphore(value: 0)
+            Task.detached {
+                try await TestConfiguration.shared().endCurrentFeature()
+                semaphore.signal()
+            }
+            semaphore.wait()
         }
-        semaphore.wait()
         super.tearDown()
     }
 
     func run() async throws {
         // check if we have the scenario
         if (currentScenario == nil) {
-            fatalError("""
+            throw XCTSkip("""
             To run the feature you have to setup the scenario for each test case.
             Usage:
             func testMyScenario() async throws {

@@ -2,6 +2,7 @@ import Foundation
 import XCTest
 
 public class Actor {
+    public let uuid = UUID().uuidString
     public var name: String
     private var context: [String: Any] = [:]
     private var abilities: [String : any Ability] = [:]
@@ -27,7 +28,7 @@ public class Actor {
     
     private func getAbility<T: Ability>(_ ability: T.Type) async throws -> T {
         let ability = self.abilities[String(describing: ability.self)]! as! T
-        if (!ability.isInitialized) {
+        if (!ability.isInitialized()) {
             try await ability.initialize()
         }
         return ability

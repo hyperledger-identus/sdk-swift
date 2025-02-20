@@ -15,7 +15,7 @@ public extension DIDCommAgent {
         let manager = connectionManager
         messagesStreamTask = Task {
             // Keep trying to fetch messages until the task is cancelled
-            while true {
+            while !Task.isCancelled {
                 do {
                      logger.debug(message: "Fetching new batch of 10 unread messages")
                     // Wait for new messages to arrive

@@ -1,6 +1,6 @@
 import TestFramework
 
-class ReceiveAnoncredCredentialFeature: Feature {
+final class ReceiveAnoncredCredentialFeature: Feature {
     override func title() -> String {
         "Receive anonymous credential"
     }

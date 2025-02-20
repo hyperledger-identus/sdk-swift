@@ -3,6 +3,7 @@ import XCTest
 import SwiftHamcrest
 
 open class TestConfiguration: ITestConfiguration {
+    public static var started = false
     public static var shared = { instance! }
     
     public var environment: [String: String] = [:]
@@ -48,6 +49,7 @@ open class TestConfiguration: ITestConfiguration {
         if (instance == nil) {
             XCTestObservationCenter.shared.addTestObserver(TestObserver())
         }
+        started = true
         try await setUpConfigurationInstance()
         
     }
@@ -161,7 +163,7 @@ open class TestConfiguration: ITestConfiguration {
     /// signals the suite has ended
     public func end() {
         let semaphore = DispatchSemaphore(value: 0)
-        Task.init {
+        Task.detached {
             try await self.afterFeatures(self.result.featuresOutcome)
             try await self.tearDownInstance()
             semaphore.signal()
@@ -189,6 +191,8 @@ open class TestConfiguration: ITestConfiguration {
             case .AFTER_FEATURES:
                 try! await reporter.afterFeatures(object as! [FeatureOutcome])
             }
+            fflush(stdout)
+            fflush(stderr)
         }
     }
     

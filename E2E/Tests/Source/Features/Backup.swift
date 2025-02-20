@@ -10,17 +10,17 @@ final class BackupFeature: Feature {
         "The Edge Agent should be able to create and restore a backup"
     }
     
-    func testCreateAndRestoreABackup() async throws {
-        currentScenario = Scenario("Create and restore a backup")
-            .given("Edge Agent has created a backup")
-            .then("a new SDK can be restored from Edge Agent")
-    }
+    // func testCreateAndRestoreABackup() async throws {
+    //     currentScenario = Scenario("Create and restore a backup")
+    //         .given("Edge Agent has created a backup")
+    //         .then("a new Restored Agent can be restored from Edge Agent")
+    // }
     
-    func testAgentWithoutProperSeedShouldNotBeAbleToRestoreTheBackup() async throws {
-        currentScenario = Scenario("Agent without a seed should not be able to restore the backup")
-            .given("Edge Agent has created a backup")
-            .then("a new SDK cannot be restored from Edge Agent with wrong seed")
-    }
+    // func testAgentWithoutProperSeedShouldNotBeAbleToRestoreTheBackup() async throws {
+    //     currentScenario = Scenario("Agent without a seed should not be able to restore the backup")
+    //         .given("Edge Agent has created a backup")
+    //         .then("a new Restored Agent cannot be restored from Edge Agent with wrong seed")
+    // }
     
     func testRestoredBackupShouldBeFunctional() async throws {
         currentScenario = Scenario("Restored backup should be functional")

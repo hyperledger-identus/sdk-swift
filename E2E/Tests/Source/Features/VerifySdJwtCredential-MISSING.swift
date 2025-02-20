@@ -9,7 +9,7 @@ final class VerifySdJwt: Feature {
         "The Edge Agent should be able to receive a verifiable credential from Cloud Agent and then send a presentation to another edge agent who will verify it"
     }
     
-    func sdJwtVerification() async throws {
+    func testSdJwtVerification() async throws {
         currentScenario = Scenario("SDKs JWT Verification")
             .given("Cloud Agent is connected to Edge Agent")
             .and("Edge Agent has '1' sd+jwt credentials issued by Cloud Agent")
@@ -18,7 +18,7 @@ final class VerifySdJwt: Feature {
             .then("Verifier Edge Agent should see the verification proof is verified")
     }
     
-    func sdJwtWrongClaimsVerification() async throws {
+    func testSdJwtWrongClaimsVerification() async throws {
         currentScenario = Scenario("SDKs JWT Verification")
             .given("Cloud Agent is connected to Edge Agent")
             .and("Edge Agent has '1' sd+jwt credentials issued by Cloud Agent")

@@ -1,6 +1,6 @@
 import TestFramework
 
-final class JwtProofOfRequestFeature: Feature {
+final class ProvideJwtProof: Feature {
     override func title() -> String {
         "Provide proof of request"
     }

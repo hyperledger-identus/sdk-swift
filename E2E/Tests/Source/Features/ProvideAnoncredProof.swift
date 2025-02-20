@@ -1,6 +1,6 @@
 import TestFramework
 
-final class AnoncredProofOfRequestFeature: Feature {
+final class ProvideAnoncredProof: Feature {
     override func title() -> String {
         "Provide anonymous proof of request"
     }
