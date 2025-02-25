@@ -243,10 +243,17 @@ open class TestConfiguration: ITestConfiguration {
         // force as own instance
         let instance = instanceType.createInstance() as! TestConfiguration
         
-        try await instance.setUp()
-        try await instance.setUpReporters()
-        try await instance.setUpSteps()
-        
+        do {
+            try await instance.setUp()
+            try await instance.setUpReporters()
+            try await instance.setUpSteps()
+        } catch {
+            print("Error setting up configuration: \(error)")
+            fflush(stdout)
+            fflush(stderr)
+            exit(1)
+        }
+
         /// setup hamcrest to update variable if failed
         HamcrestReportFunction = { message, file, line in
             instance.assertionFailure = (message, file, line)

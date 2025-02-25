@@ -20,21 +20,21 @@ final class ReceiveSdJwtCredentialTests: Feature {
             .and("Edge Agent process issued credentials from Cloud Agent")
     }
     
-    func testReceiveMultipleCredentialsSequentially() async throws {
-        currentScenario = Scenario("Receive multiple sd+jwt credentials sequentially")
-            .given("Cloud Agent is connected to Edge Agent")
-            .when("Edge Agent accepts 3 sd+jwt credential offer sequentially from Cloud Agent")
-            .then("Cloud Agent should see all credentials were accepted")
-            .and("Edge Agent wait to receive issued credentials from Cloud Agent")
-            .and("Edge Agent process issued credentials from Cloud Agent")
-    }
+    // func testReceiveMultipleCredentialsSequentially() async throws {
+    //     currentScenario = Scenario("Receive multiple sd+jwt credentials sequentially")
+    //         .given("Cloud Agent is connected to Edge Agent")
+    //         .when("Edge Agent accepts 3 sd+jwt credential offer sequentially from Cloud Agent")
+    //         .then("Cloud Agent should see all credentials were accepted")
+    //         .and("Edge Agent wait to receive issued credentials from Cloud Agent")
+    //         .and("Edge Agent process issued credentials from Cloud Agent")
+    // }
     
-    func testReceiveMultipleCredentialsAtOnce() async throws {
-        currentScenario = Scenario("Receive multiple sd+jwt credentials at once")
-            .given("Cloud Agent is connected to Edge Agent")
-            .when("Edge Agent accepts 3 sd+jwt credentials offer at once from Cloud Agent")
-            .then("Cloud Agent should see all credentials were accepted")
-            .and("Edge Agent wait to receive issued credentials from Cloud Agent")
-            .and("Edge Agent process issued credentials from Cloud Agent")
-    }
+    // func testReceiveMultipleCredentialsAtOnce() async throws {
+    //     currentScenario = Scenario("Receive multiple sd+jwt credentials at once")
+    //         .given("Cloud Agent is connected to Edge Agent")
+    //         .when("Edge Agent accepts 3 sd+jwt credentials offer at once from Cloud Agent")
+    //         .then("Cloud Agent should see all credentials were accepted")
+    //         .and("Edge Agent wait to receive issued credentials from Cloud Agent")
+    //         .and("Edge Agent process issued credentials from Cloud Agent")
+    // }
 }

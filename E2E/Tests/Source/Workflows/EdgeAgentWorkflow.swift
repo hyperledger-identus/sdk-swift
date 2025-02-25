@@ -79,6 +79,23 @@ class EdgeAgentWorkflow {
             action: "create a new prism DID"
         ).didcommAgent.createNewPrismDID()
         
+        /*
+        let edPrivateKey = try await edgeAgent.using(
+            ability: DidcommAgentAbility.self,
+            action: "create an ed25519 private key"
+        ).didcommAgent.apollo.createPrivateKey(parameters: [
+            KeyProperties.type.rawValue: "EC",
+            KeyProperties.curve.rawValue: KnownKeyCurves.ed25519.rawValue
+        ])
+        
+        let did = try await edgeAgent.using(
+            ability: DidcommAgentAbility.self,
+            action: "create a new prism DID"
+        ).didcommAgent.edgeAgent.createNewPrismDID(
+            keys: [(KeyPurpose.authentication, edPrivateKey)]
+        )
+        */
+        
         let requestCredential = try await edgeAgent
             .using(
                 ability: DidcommAgentAbility.self,
