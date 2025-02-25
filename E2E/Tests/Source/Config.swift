@@ -42,18 +42,32 @@ class Config: TestConfiguration {
     }
 
     override func setUp() async throws {
-        Config.mediatorOobUrl = environment["MEDIATOR_OOB_URL"]!
-        Config.agentUrl = environment["PRISM_AGENT_URL"]!
+        Config.mediatorOobUrl = environment["MEDIATOR_OOB_URL"] ?? ""
+        Config.agentUrl = environment["PRISM_AGENT_URL"] ?? ""
         Config.publishedSecp256k1Did = environment["PUBLISHED_SECP256K1_DID"] ?? ""
         Config.publishedEd25519Did = environment["PUBLISHED_ED25519_DID"] ?? ""
         Config.jwtSchemaGuid = environment["JWT_SCHEMA_GUID"] ?? ""
         Config.sdJwtSchemaGuid = environment["SDJWT_SCHEMA_GUID"] ?? ""
         Config.anoncredDefinitionGuid = environment["ANONCRED_DEFINITION_GUID"] ?? ""
         Config.apiKey = environment["APIKEY"] ?? ""
-        
+
+        let isDebug = ProcessInfo.processInfo.environment["DEBUG"]
+        if (isDebug != nil) {
+            print("=================== PARAMETERS ===================")
+            print("MEDIATOR_OOB_URL", Config.mediatorOobUrl)
+            print("PRISM_AGENT_URL", Config.agentUrl)
+            print("PUBLISHED_SECP256K1_DID", Config.publishedSecp256k1Did)
+            print("PUBLISHED_ED25519_DID", Config.publishedEd25519Did)
+            print("JWT_SCHEMA_GUID", Config.jwtSchemaGuid)
+            print("SDJWT_SCHEMA_GUID", Config.sdJwtSchemaGuid)
+            print("ANONCRED_DEFINITION_GUID", Config.anoncredDefinitionGuid)
+            print("APIKEY", Config.apiKey)
+            fflush(stdout)
+        }
+
         // should be initialized after the configuration variables
         let openEnterpriseApi = CloudAgentAPI()
-        openEnterpriseApi.createClient()
+        try openEnterpriseApi.createClient()
         self.api = openEnterpriseApi
         
         let secp256k1DidExists = try await checkPublishedDid(did: Config.publishedSecp256k1Did)

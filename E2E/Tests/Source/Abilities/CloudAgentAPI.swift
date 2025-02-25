@@ -24,7 +24,7 @@ class CloudAgentAPI: Ability {
 
     func initialize() async throws {
         self.actor = actor
-        createClient(StepReporterMiddleware(actor.name))
+        try createClient(StepReporterMiddleware(actor.name))
         self.initialized = true
     }
     
@@ -32,7 +32,7 @@ class CloudAgentAPI: Ability {
         self.actor = actor
     }
     
-    func createClient(_ middlewares: ClientMiddleware...) {
+    func createClient(_ middlewares: ClientMiddleware...) throws {
         transport = URLSessionTransport()
         client = Client(
             serverURL: URL(string: Config.agentUrl)!,
