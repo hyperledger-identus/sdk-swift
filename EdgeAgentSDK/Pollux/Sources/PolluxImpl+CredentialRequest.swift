@@ -111,18 +111,19 @@ extension PolluxImpl {
         else {
             throw PolluxError.invalidPrismDID
         }
-        
+
         guard
             let exportableKeyOption = options.first(where: {
-                if case .exportableKey = $0 { return true }
+                if case .exportableKeys = $0 { return true }
                 return false
             }),
-            case let CredentialOperationsOptions.exportableKey(exportableKey) = exportableKeyOption
+            case let CredentialOperationsOptions.exportableKeys(exportableKeys) = exportableKeyOption,
+            let exportableFirstKey = exportableKeys.filter({ $0.jwk.crv?.lowercased() == "secp256k1" }).first
         else {
             throw PolluxError.requiresExportableKeyForOperation(operation: "Create Credential Request")
         }
-        
-        return try await CreateJWTCredentialRequest.create(didStr: did.string, key: exportableKey, offerData: offerData)
+
+        return try await CreateJWTCredentialRequest.create(didStr: did.string, key: exportableFirstKey, offerData: offerData)
     }
 
     private func processSDJWTCredentialRequest(offerData: Data, options: [CredentialOperationsOptions]) async throws -> String {
@@ -138,15 +139,15 @@ extension PolluxImpl {
 
         guard
             let exportableKeyOption = options.first(where: {
-                if case .exportableKey = $0 { return true }
+                if case .exportableKeys = $0 { return true }
                 return false
             }),
-            case let CredentialOperationsOptions.exportableKey(exportableKey) = exportableKeyOption
+            case let CredentialOperationsOptions.exportableKeys(exportableKeys) = exportableKeyOption
         else {
             throw PolluxError.requiresExportableKeyForOperation(operation: "Create Credential Request")
         }
 
-        return try await CreateJWTCredentialRequest.create(didStr: did.string, key: exportableKey, offerData: offerData)
+        return try await CreateSDJWTCredentialRequest.create(didStr: did.string, keys: exportableKeys, offerData: offerData)
     }
 
     private func processAnoncredsCredentialRequest(

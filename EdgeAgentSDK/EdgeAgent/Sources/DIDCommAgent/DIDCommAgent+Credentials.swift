@@ -180,20 +180,6 @@ public extension DIDCommAgent {
             .first()
             .await()
 
-        guard let storedPrivateKey = didInfo?.privateKeys.first else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
-
-        let privateKey = try await apollo.restorePrivateKey(storedPrivateKey)
-
-        guard
-            let exporting = privateKey.exporting,
-            let linkSecret = try await pluto.getLinkSecret().first().await()
-        else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
-
-        let restored = try await self.apollo.restoreKey(linkSecret)
-        guard
-            let linkSecretString = String(data: restored.raw, encoding: .utf8)
-        else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
-
         let downloader = DownloadDataWithResolver(castor: castor)
         guard
             let attachment = offer.attachments.first,
@@ -201,6 +187,20 @@ public extension DIDCommAgent {
         else {
             throw PolluxError.unsupportedIssuedMessage
         }
+
+        guard let storedPrivateKey = didInfo?.privateKeys else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
+
+        let privateKeys = try await storedPrivateKey.asyncMap { try await apollo.restorePrivateKey($0) }
+        let exporting = privateKeys.compactMap(\.exporting)
+
+        guard
+            let linkSecret = try await pluto.getLinkSecret().first().await()
+        else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
+
+        let restored = try await self.apollo.restoreKey(linkSecret)
+        guard
+            let linkSecretString = String(data: restored.raw, encoding: .utf8)
+        else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
 
         let jsonData: Data
         switch attachment.data {
@@ -218,7 +218,7 @@ public extension DIDCommAgent {
             type: offerFormat,
             offerPayload: jsonData,
             options: [
-                .exportableKey(exporting),
+                .exportableKeys(exporting),
                 .subjectDID(did),
                 .linkSecret(id: did.string, secret: linkSecretString),
                 .credentialDefinitionDownloader(downloader: downloader),
