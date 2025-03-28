@@ -152,7 +152,8 @@ public extension DIDCommAgent {
             options: [
                 .linkSecret(id: "", secret: linkSecretString),
                 .credentialDefinitionDownloader(downloader: downloader),
-                .schemaDownloader(downloader: downloader)
+                .schemaDownloader(downloader: downloader),
+                message.thid.map { .thid($0) } ?? .thid(message.id)
             ]
         )
 
@@ -222,7 +223,8 @@ public extension DIDCommAgent {
                 .subjectDID(did),
                 .linkSecret(id: did.string, secret: linkSecretString),
                 .credentialDefinitionDownloader(downloader: downloader),
-                .schemaDownloader(downloader: downloader)
+                .schemaDownloader(downloader: downloader),
+                offer.thid.map { .thid($0) } ?? .thid(offer.id)
             ]
         )
 
