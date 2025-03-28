@@ -300,8 +300,13 @@ class CloudAgentAPI: Ability {
         }
     }
     
-    func createConnection() async throws -> Components.Schemas.Connection {
-        let body = Components.Schemas.CreateConnectionRequest(label: "Alice")
+    func createConnection(label: String?, goalCode: String?, goal: String?) async throws -> Components.Schemas.Connection {
+        let body = Components.Schemas.CreateConnectionRequest(
+            label: label,
+            goalCode: goalCode,
+            goal: goal
+        )
+    
         let response = try await client.createConnection(.init(body: .json(body)))
         
         switch(response) {

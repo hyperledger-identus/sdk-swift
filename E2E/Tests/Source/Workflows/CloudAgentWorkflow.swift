@@ -4,17 +4,17 @@ import TestFramework
 
 class CloudAgentWorkflow {
     static func isConnectedToEdgeAgent(cloudAgent: Actor, edgeAgent: Actor) async throws{
-        try await hasAConnectionInvitation(cloudAgent: cloudAgent)
+        try await hasAConnectionInvitation(cloudAgent: cloudAgent, label: nil, goalCode: nil, goal: nil)
         try await sharesInvitationToEdgeAgent(cloudAgent: cloudAgent, edgeAgent: edgeAgent)
         try await EdgeAgentWorkflow.connectsThroughTheInvite(edgeAgent: edgeAgent)
         try await shouldHaveTheConnectionStatusUpdated(cloudAgent: cloudAgent, expectedState: .ConnectionResponseSent)
     }
     
-    static func hasAConnectionInvitation(cloudAgent: Actor) async throws {
+    static func hasAConnectionInvitation(cloudAgent: Actor, label: String?, goalCode: String?, goal: String?) async throws {
         let connection = try await cloudAgent.using(
             ability: CloudAgentAPI.self,
             action: "create a connection"
-        ).createConnection()
+        ).createConnection(label: label, goalCode: goalCode, goal: goal)
         try await cloudAgent.remember(key: "invitation", value: connection.invitation.invitationUrl)
         try await cloudAgent.remember(key: "connectionId", value: connection.connectionId)
     }

@@ -73,28 +73,46 @@ class EdgeAgentWorkflow {
             action: "removes it from list"
         ).credentialOfferStack.removeFirst()
         
+        let format = message.attachments[0].format
+        let privateKey: PrivateKey
+        
+        switch(format) {
+        case "vc+sd-jwt":
+            privateKey = try await edgeAgent.using(
+                ability: DidcommAgentAbility.self,
+                action: "create a private key"
+            ).didcommAgent.apollo.createPrivateKey(parameters: [
+                KeyProperties.type.rawValue: "EC",
+                KeyProperties.curve.rawValue: KnownKeyCurves.ed25519.rawValue
+            ])
+            break
+        case "prism/jwt":
+            let seed = try await edgeAgent.using(
+                ability: DidcommAgentAbility.self,
+                action: "get seed"
+            ).didcommAgent.edgeAgent.seed
+            
+            privateKey = try await edgeAgent.using(
+                ability: DidcommAgentAbility.self,
+                action: "create a private key"
+            ).didcommAgent.apollo.createPrivateKey(parameters: [
+                KeyProperties.type.rawValue: "EC",
+                KeyProperties.curve.rawValue: KnownKeyCurves.secp256k1.rawValue,
+                KeyProperties.seed.rawValue: seed.value.base64EncodedString(),
+                KeyProperties.derivationPath.rawValue: DerivationPath().keyPathString()
+            ])
+            break
+        default:
+            throw PolluxError.invalidCredentialError
+        }
+
         let acceptOfferMessage = try OfferCredential3_0(fromMessage: message)
         let did = try await edgeAgent.using(
             ability: DidcommAgentAbility.self,
             action: "create a new prism DID"
-        ).didcommAgent.createNewPrismDID()
-        
-        /*
-        let edPrivateKey = try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "create an ed25519 private key"
-        ).didcommAgent.apollo.createPrivateKey(parameters: [
-            KeyProperties.type.rawValue: "EC",
-            KeyProperties.curve.rawValue: KnownKeyCurves.ed25519.rawValue
-        ])
-        
-        let did = try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "create a new prism DID"
-        ).didcommAgent.edgeAgent.createNewPrismDID(
-            keys: [(KeyPurpose.authentication, edPrivateKey)]
+        ).didcommAgent.createNewPrismDID(
+            keys: [(KeyPurpose.authentication, privateKey)]
         )
-        */
         
         let requestCredential = try await edgeAgent
             .using(

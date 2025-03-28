@@ -7,6 +7,7 @@ public class Scenario {
     var steps: [ConcreteStep] = []
     var pass: Bool = false
     var error: Error? = nil
+    var disabled: Bool = false
     
     private var lastContext: String = ""
     
@@ -58,6 +59,11 @@ public class Scenario {
             fatalError("Trying to add an [and] step without previous context.")
         }
         addStep(step)
+        return self
+    }
+    
+    public func disable() -> Scenario {
+        self.disabled = true
         return self
     }
 }

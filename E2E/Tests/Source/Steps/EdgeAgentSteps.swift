@@ -84,7 +84,7 @@ class EdgeAgentSteps: Steps {
     var edgeAgentProcessIssuedCredentials = { (edgeAgent: Actor, cloudAgent: Actor) in
         let recordIdList: [String] = try await cloudAgent.recall(key: "recordIdList")
         for recordId in recordIdList {
-            try  await EdgeAgentWorkflow.processIssuedCredential(edgeAgent: edgeAgent, recordId: recordId)
+            try await EdgeAgentWorkflow.processIssuedCredential(edgeAgent: edgeAgent, recordId: recordId)
         }
     }
     

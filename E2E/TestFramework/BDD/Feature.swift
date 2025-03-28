@@ -46,7 +46,19 @@ open class Feature: XCTestCase {
             """)
         }
         
+        if (currentScenario!.disabled) {
+            throw XCTSkip("Scenario [\(currentScenario!.title)] is disabled")
+        }
+        
         try await TestConfiguration.setUpInstance()
-        try await TestConfiguration.shared().run(self, currentScenario!)
+        
+        if (currentScenario! is ParameterizedScenario) {
+            let parameterizedScenario = currentScenario! as! ParameterizedScenario
+            for scenario in parameterizedScenario.build() {
+                try await TestConfiguration.shared().run(self, scenario)
+            }
+        } else {
+            try await TestConfiguration.shared().run(self, currentScenario!)
+        }
     }
 }

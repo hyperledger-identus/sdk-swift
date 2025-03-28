@@ -28,7 +28,7 @@ class CloudAgentSteps: Steps {
     var cloudAgentAsksForPresentProof = { (cloudAgent: Actor) in
         try await CloudAgentWorkflow.asksForPresentProof(cloudAgent: cloudAgent)
     }
-
+    
     @Step("{actor} asks for anonymous present-proof")
     var cloudAgentAsksForAnonymousPresentProof = { (cloudAgent: Actor) in
         try await CloudAgentWorkflow.asksForAnonymousPresentProof(cloudAgent: cloudAgent)
@@ -54,7 +54,7 @@ class CloudAgentSteps: Steps {
         }
         try await cloudAgent.remember(key: "recordIdList", value: recordIdList)
     }
-
+    
     @Step("{actor} should see all credentials were accepted")
     var cloudAgentSeeAllCredentialsWereAccepted = { (cloudAgent: Actor) in
         let recordIdList: [String] = try await cloudAgent.recall(key: "recordIdList")
@@ -68,9 +68,17 @@ class CloudAgentSteps: Steps {
         try await CloudAgentWorkflow.isConnectedToEdgeAgent(cloudAgent: cloudAgent, edgeAgent: edgeAgent)
     }
     
-    @Step("{actor} has a connection invitation")
-    var cloudAgentHasAConnectionInvitation = { (cloudAgent: Actor) in
-        try await CloudAgentWorkflow.hasAConnectionInvitation(cloudAgent: cloudAgent)
+    @Step("{actor} has a connection invitation with '{}', '{}' and '{}' parameters")
+    var cloudAgentHasAConnectionInvitation = { (cloudAgent: Actor, label: String, goalCode: String, goal: String) in
+        let label = label == "null" ? nil : label
+        let goalCode = goalCode == "null" ? nil : goalCode
+        let goal = goal == "null" ? nil : goal
+        try await CloudAgentWorkflow.hasAConnectionInvitation(
+            cloudAgent: cloudAgent,
+            label: label,
+            goalCode: goalCode,
+            goal: goal
+        )
     }
     
     @Step("{actor} shares invitation to {actor}")
