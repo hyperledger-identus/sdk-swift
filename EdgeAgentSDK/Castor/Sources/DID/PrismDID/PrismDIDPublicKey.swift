@@ -44,15 +44,15 @@ struct PrismDIDPublicKey {
             case .issuingKey:
                 return "issuing\(index)"
             case .capabilityDelegationKey:
-                return "capabilityDelegationKey\(index)"
+                return "capability-delegationKey\(index)"
             case .capabilityInvocationKey:
-                return "capabilityInvocationKey\(index)"
+                return "capability-invocationKey\(index)"
             case .authenticationKey:
                 return "authentication\(index)"
             case .revocationKey:
                 return "revocation\(index)"
             case .keyAgreementKey:
-                return "keyAgreement\(index)"
+                return "key-agreement\(index)"
             case .unknownKey:
                 return "unknown\(index)"
             }
@@ -102,22 +102,34 @@ struct PrismDIDPublicKey {
         var protoKey = Io_Iohk_Atala_Prism_Protos_PublicKey()
         protoKey.id = id
         protoKey.usage = usage.toProto()
-        guard
-            let pointXStr = keyData.getProperty(.curvePointX),
-            let pointYStr = keyData.getProperty(.curvePointY),
-            let pointX = Data(base64URLEncoded: pointXStr),
-            let pointY = Data(base64URLEncoded: pointYStr)
-        else {
+        switch curve {
+        case "Ed25519", "X25519":
+            var protoEC = Io_Iohk_Atala_Prism_Protos_CompressedECKeyData()
+            protoEC.data = keyData.raw
+            protoEC.curve = curve
+            protoKey.keyData = .compressedEcKeyData(protoEC)
+        case "secp256k1":
+            guard
+                let pointXStr = keyData.getProperty(.curvePointX),
+                let pointYStr = keyData.getProperty(.curvePointY),
+                let pointX = Data(base64URLEncoded: pointXStr),
+                let pointY = Data(base64URLEncoded: pointYStr)
+            else {
+                throw ApolloError.missingKeyParameters(missing: [
+                    KeyProperties.curvePointX.rawValue,
+                    KeyProperties.curvePointY.rawValue
+                ])
+            }
+            var protoEC = Io_Iohk_Atala_Prism_Protos_ECKeyData()
+            protoEC.x = pointX
+            protoEC.y = pointY
+            protoEC.curve = curve
+            protoKey.keyData = .ecKeyData(protoEC)
+        default:
             throw ApolloError.missingKeyParameters(missing: [
-                KeyProperties.curvePointX.rawValue,
                 KeyProperties.curvePointY.rawValue
             ])
         }
-        var protoEC = Io_Iohk_Atala_Prism_Protos_ECKeyData()
-        protoEC.x = pointX
-        protoEC.y = pointY
-        protoEC.curve = curve
-        protoKey.keyData = .ecKeyData(protoEC)
         return protoKey
     }
 }

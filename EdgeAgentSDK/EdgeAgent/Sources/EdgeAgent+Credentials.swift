@@ -136,12 +136,12 @@ public extension EdgeAgent {
             .first()
             .await()
 
-        guard let storedPrivateKey = didInfo?.privateKeys.first else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
+        guard let storedPrivateKey = didInfo?.privateKeys else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
 
-        let privateKey = try await apollo.restorePrivateKey(storedPrivateKey)
+        let privateKeys = try await storedPrivateKey.asyncMap { try await apollo.restorePrivateKey($0) }
+        let exporting = privateKeys.compactMap(\.exporting)
 
         guard
-            let exporting = privateKey.exporting,
             let linkSecret = try await pluto.getLinkSecret().first().await()
         else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
 
@@ -155,7 +155,7 @@ public extension EdgeAgent {
             type: type,
             offerPayload: offerPayload,
             options: [
-                .exportableKey(exporting),
+                .exportableKeys(exporting),
                 .subjectDID(did),
                 .linkSecret(id: did.string, secret: linkSecretString),
                 .credentialDefinitionDownloader(downloader: downloader),

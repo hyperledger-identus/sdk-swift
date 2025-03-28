@@ -17,6 +17,7 @@ public extension OIDCAgent {
         services: [DIDDocument.Service] = []
     ) async throws -> DID {
         try await edgeAgent.createNewPrismDID(
+            keys: [],
             keyPathIndex: keyPathIndex,
             alias: alias,
             services: services
