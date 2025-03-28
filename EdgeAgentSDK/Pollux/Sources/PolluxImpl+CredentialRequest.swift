@@ -118,7 +118,10 @@ extension PolluxImpl {
                 return false
             }),
             case let CredentialOperationsOptions.exportableKeys(exportableKeys) = exportableKeyOption,
-            let exportableFirstKey = exportableKeys.filter({ $0.jwk.crv?.lowercased() == "secp256k1" }).first
+            let exportableFirstKey = exportableKeys.filter({
+                $0.jwk.crv?.lowercased() == "secp256k1"
+                && !($0.jwk.kid?.contains("#master") ?? true) // TODO: This is a hardcoded fix, since prism DID doesnt not recognize master key
+            }).first
         else {
             throw PolluxError.requiresExportableKeyForOperation(operation: "Create Credential Request")
         }
