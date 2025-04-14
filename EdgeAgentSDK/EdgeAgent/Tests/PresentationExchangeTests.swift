@@ -38,7 +38,7 @@ final class PresentationExchangeFlowTests: XCTestCase {
         let credential = try JWTCredential(data: jwt.tryToData())
 
         logger.info("Creating presentation request")
-        let message = try await edgeAgent.initiatePresentationRequest(
+        let message = try edgeAgent.initiatePresentationRequest(
             type: .jwt,
             fromDID: DID(method: "test", methodId: "alice"),
             toDID: DID(method: "test", methodId: "bob"),
@@ -108,7 +108,7 @@ final class PresentationExchangeFlowTests: XCTestCase {
         let credential = try SDJWTCredential(sdjwtString: sdjwt)
 
         logger.info("Creating presentation request")
-        let message = try await edgeAgent.initiatePresentationRequest(
+        let message = try edgeAgent.initiatePresentationRequest(
             type: .jwt,
             fromDID: DID(method: "test", methodId: "alice"),
             toDID: DID(method: "test", methodId: "bob"),
