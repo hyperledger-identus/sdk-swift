@@ -7,14 +7,14 @@ import Foundation
 public class DIDCommAgent {
     /// Enumeration representing the current state of the agent.
     public enum State: String {
-        case stoped
+        case stopped
         case starting
         case running
-        case stoping
+        case stopping
     }
     
     /// Represents the current state of the agent.
-    public private(set) var state = State.stoped
+    public private(set) var state = State.stopped
     
     /// The mediator routing DID if one is currently registered.
     public var mediatorRoutingDID: DID? {
@@ -129,7 +129,7 @@ public class DIDCommAgent {
     public func start() async throws {
         guard
             let connectionManager,
-            state == .stoped
+            state == .stopped
         else { return }
         logger.info(message: "Starting agent")
         state = .starting
@@ -149,19 +149,19 @@ public class DIDCommAgent {
 
     /**
       This function is used to stop the EdgeAgent.
-      The function sets the state of EdgeAgent to .stoping.
+      The function sets the state of EdgeAgent to .stopping.
       All ongoing events that was created by the EdgeAgent are stopped.
-      After all the events are stopped the state of the EdgeAgent is set to .stoped.
+      After all the events are stopped the state of the EdgeAgent is set to .stopped.
 
       - Throws: If the current state is not running throws error.
       */
      public func stop() async throws {
          guard state == .running else { return }
-         logger.info(message: "Stoping agent")
-         state = .stoping
+         logger.info(message: "Stopping agent")
+         state = .stopping
          cancellables.forEach { $0.cancel() }
          connectionManager?.stopAllEvents()
-         state = .stoped
+         state = .stopped
          logger.info(message: "Agent not running")
      }
 }

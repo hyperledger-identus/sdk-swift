@@ -29,6 +29,28 @@ extension CastorImpl: Castor {
 //        ).compute()
 //    }
 
+    public func createDID(
+        method: DIDMethod,
+        keys: [(KeyPurpose, any PublicKey)],
+        services: [DIDDocument.Service]
+    ) throws -> DID {
+        switch method {
+        case "prism":
+            return try CreatePrismDIDOperation(
+                apollo: apollo,
+                keys: keys,
+                services: services
+            ).compute()
+        case "peer":
+            return try CreatePeerDIDOperation(
+                keys: keys,
+                services: services
+            ).compute()
+        default:
+            throw CastorError.noResolversAvailableForDIDMethod(method: method)
+        }
+    }
+
     /// createPrismDID creates a DID for a prism (a device or server that acts as a DID owner and controller) using a given master public key and list of services. This function may throw an error if the master public key or services are invalid.
     ///
     /// - Parameters:
@@ -42,7 +64,7 @@ extension CastorImpl: Castor {
     ) throws -> DID {
         try CreatePrismDIDOperation(
             apollo: apollo,
-            masterPublicKey: masterPublicKey,
+            keys: [(KeyPurpose.master, masterPublicKey)],
             services: services
         ).compute()
     }
@@ -61,8 +83,10 @@ extension CastorImpl: Castor {
         services: [DIDDocument.Service]
     ) throws -> DID {
         try CreatePeerDIDOperation(
-            autenticationPublicKey: authenticationPublicKey,
-            agreementPublicKey: keyAgreementPublicKey,
+            keys: [
+                (KeyPurpose.authentication, authenticationPublicKey),
+                (KeyPurpose.agreement, keyAgreementPublicKey)
+            ],
             services: services
         ).compute()
     }

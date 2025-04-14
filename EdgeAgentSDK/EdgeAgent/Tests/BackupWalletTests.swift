@@ -45,8 +45,8 @@ final class BackupWalletTests: XCTestCase {
 
     func testBackup() async throws {
         let (backupAgent, backupPluto) = try createAgent()
-        _ = try await backupAgent.createNewPrismDID()
-        _ = try await backupAgent.createNewPrismDID()
+        _ = try await backupAgent.createNewPrismDID(masterPrivateKey: nil)
+        _ = try await backupAgent.createNewPrismDID(masterPrivateKey: nil)
 
         backupPluto.didPairs = [
             .init(
