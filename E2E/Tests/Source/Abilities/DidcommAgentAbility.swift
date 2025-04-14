@@ -4,6 +4,7 @@ import Builders
 import Combine
 import Domain
 import Pluto
+import Castor
 import Core
 import TestFramework
 
@@ -66,7 +67,9 @@ class DidcommAgentAbility: Ability {
         let mediatorDID = try await DidcommAgentAbility.getPrismMediatorDid()
         
         let apollo = ApolloBuilder().build()
-        let castor = CastorBuilder(apollo: apollo).build()
+        let castor = CastorImpl(apollo: apollo, resolvers: [
+            PrismShortFormResolver()
+        ])
         let pluto = PlutoBuilder(setup: .init(
             coreDataSetup: .init(
                 modelPath: .storeName("PrismPluto"),
@@ -85,7 +88,8 @@ class DidcommAgentAbility: Ability {
         ).build()
         
         EdgeAgent.setupLogging(logLevels: [
-            .edgeAgent: .error
+            .edgeAgent: .error,
+            .core: .error
         ])
         
         let edgeAgent = EdgeAgent(

@@ -31,7 +31,7 @@ class Config: TestConfiguration {
     }
     
     override func createReporters() async throws -> [Reporter] {
-        return [ConsoleReporter()]
+        return [ConsoleReporter(), HtmlReporter(), JunitReporter()]
     }
     
     override func createActors() async throws -> [Actor]  {

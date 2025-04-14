@@ -32,10 +32,25 @@ class EdgeAgentWorkflow {
         }
     }
     
-    static func hasIssuedCredentials(edgeAgent: Actor, numberOfCredentialsIssued: Int, cloudAgent: Actor) async throws {
+    static func hasIssuedJwtCredentials(edgeAgent: Actor, numberOfCredentialsIssued: Int, cloudAgent: Actor) async throws {
         var recordIdList: [String] = []
         for _ in 0..<numberOfCredentialsIssued {
             try await CloudAgentWorkflow.offersACredential(cloudAgent: cloudAgent)
+            try await EdgeAgentWorkflow.waitToReceiveCredentialsOffer(edgeAgent: edgeAgent, numberOfCredentials: 1)
+            try await EdgeAgentWorkflow.acceptsTheCredentialOffer(edgeAgent: edgeAgent)
+            let recordId: String = try await cloudAgent.recall(key: "recordId")
+            recordIdList.append(recordId)
+            try await CloudAgentWorkflow.verifyCredentialState(cloudAgent: cloudAgent, recordId: recordId, expectedState: .CredentialSent)
+            try await EdgeAgentWorkflow.waitToReceiveIssuedCredentials(edgeAgent: edgeAgent, numberOfCredentials: 1)
+            try await EdgeAgentWorkflow.processIssuedCredential(edgeAgent: edgeAgent, recordId: recordId)
+        }
+        try await cloudAgent.remember(key: "recordIdList", value: recordIdList)
+    }
+    
+    static func hasIssuedSdJwtCredentials(edgeAgent: Actor, numberOfCredentialsIssued: Int, cloudAgent: Actor) async throws {
+        var recordIdList: [String] = []
+        for _ in 0..<numberOfCredentialsIssued {
+            try await CloudAgentWorkflow.offersSdJwtCredentials(cloudAgent: cloudAgent)
             try await EdgeAgentWorkflow.waitToReceiveCredentialsOffer(edgeAgent: edgeAgent, numberOfCredentials: 1)
             try await EdgeAgentWorkflow.acceptsTheCredentialOffer(edgeAgent: edgeAgent)
             let recordId: String = try await cloudAgent.recall(key: "recordId")
@@ -74,17 +89,30 @@ class EdgeAgentWorkflow {
         ).credentialOfferStack.removeFirst()
         
         let format = message.attachments[0].format
-        let privateKey: PrivateKey
+        let did: DID
         
         switch(format) {
+        case "anoncreds/credential-offer@v1.0":
+            did = try await edgeAgent.using(
+                ability: DidcommAgentAbility.self,
+                action: "create a new prism DID"
+            ).didcommAgent.createNewPrismDID()
+            break
         case "vc+sd-jwt":
-            privateKey = try await edgeAgent.using(
+            let privateKey = try await edgeAgent.using(
                 ability: DidcommAgentAbility.self,
                 action: "create a private key"
             ).didcommAgent.apollo.createPrivateKey(parameters: [
                 KeyProperties.type.rawValue: "EC",
                 KeyProperties.curve.rawValue: KnownKeyCurves.ed25519.rawValue
             ])
+            
+            did = try await edgeAgent.using(
+                ability: DidcommAgentAbility.self,
+                action: "create a new prism DID"
+            ).didcommAgent.createNewPrismDID(
+                keys: [(KeyPurpose.authentication, privateKey)]
+            )
             break
         case "prism/jwt":
             let seed = try await edgeAgent.using(
@@ -92,7 +120,7 @@ class EdgeAgentWorkflow {
                 action: "get seed"
             ).didcommAgent.edgeAgent.seed
             
-            privateKey = try await edgeAgent.using(
+            let privateKey = try await edgeAgent.using(
                 ability: DidcommAgentAbility.self,
                 action: "create a private key"
             ).didcommAgent.apollo.createPrivateKey(parameters: [
@@ -101,18 +129,19 @@ class EdgeAgentWorkflow {
                 KeyProperties.seed.rawValue: seed.value.base64EncodedString(),
                 KeyProperties.derivationPath.rawValue: DerivationPath().keyPathString()
             ])
+            
+            did = try await edgeAgent.using(
+                ability: DidcommAgentAbility.self,
+                action: "create a new prism DID"
+            ).didcommAgent.createNewPrismDID(
+                keys: [(KeyPurpose.authentication, privateKey)]
+            )
             break
         default:
-            throw PolluxError.invalidCredentialError
+            throw ValidationError.error(message: "Format \(format!) not supported")
         }
-
+        
         let acceptOfferMessage = try OfferCredential3_0(fromMessage: message)
-        let did = try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "create a new prism DID"
-        ).didcommAgent.createNewPrismDID(
-            keys: [(KeyPurpose.authentication, privateKey)]
-        )
         
         let requestCredential = try await edgeAgent
             .using(
@@ -161,10 +190,12 @@ class EdgeAgentWorkflow {
     }
     
     static func presentProof(edgeAgent: Actor) async throws {
-        let credential = try await edgeAgent.using(
+        let credentials = try await edgeAgent.using(
             ability: DidcommAgentAbility.self,
             action: "get a verifiable credential"
-        ).didcommAgent.edgeAgent.verifiableCredentials().map { $0.first }.first().await()
+        ).didcommAgent.edgeAgent.verifiableCredentials()
+        
+        let credential = try await credentials.map { $0.first }.first().await()
         
         let message = try await edgeAgent.using(
             ability: DidcommAgentAbility.self,
@@ -264,8 +295,6 @@ class EdgeAgentWorkflow {
     
     static func backupAndRestoreToNewAgent(newAgent: Actor, oldAgent: Actor) async throws {
         let backup: String = try await oldAgent.recall(key: "backup")
-        let seed: Seed = try await oldAgent.recall(key: "seed")
-        _ = newAgent.whoCanUse(DidcommAgentAbility(seed: seed))
         try await newAgent
             .using(ability: DidcommAgentAbility.self, action: "recovers wallet")
             .didcommAgent.edgeAgent.recoverWallet(encrypted: backup)
@@ -316,10 +345,10 @@ class EdgeAgentWorkflow {
             .using(ability: DidcommAgentAbility.self, action: "gets did pairs")
             .didcommAgent.pluto.getAllDidPairs().first().await()
         
-        assertThat(expectedCredentials.count == actualCredentials.count)
-        assertThat(expectedPeerDids.count == actualPeerDids.count)
-        assertThat(expectedPrismDids.count == actualPrismDids.count)
-        assertThat(expectedDidPairs.count == actualDidPairs.count)
+        assertThat(actualCredentials.count, equalTo(expectedCredentials.count))
+        assertThat(actualPeerDids.count, equalTo(expectedPeerDids.count))
+        assertThat(actualPrismDids.count, equalTo(expectedPrismDids.count))
+        assertThat(actualDidPairs.count, equalTo(expectedDidPairs.count))
         
         expectedCredentials.forEach { expectedCredential in
             assertThat(actualCredentials.contains(where: { $0.id == expectedCredential.id }), equalTo(true))
@@ -332,6 +361,11 @@ class EdgeAgentWorkflow {
         }
         expectedDidPairs.forEach { expectedDidPair in
             assertThat(actualDidPairs.contains(where: { $0.name == expectedDidPair.name }), equalTo(true))
+        }
+        
+        actualPeerDids.forEach { peerDid in
+            let contain = expectedPeerDids.contains(where: { $0.string == peerDid.string })
+            print("\(peerDid.string) is contained in expected? \(contain)")
         }
     }
     
@@ -391,17 +425,29 @@ class EdgeAgentWorkflow {
         }
     }
     
-    static func verifyPresentation(edgeAgent: Actor, expected: Bool = true) async throws {
+    static func verifyPresentation(edgeAgent: Actor, isRevoked: Bool = false) async throws {
         let presentation = try await edgeAgent.using(ability: DidcommAgentAbility.self, action: "retrieves presentation message")
             .presentationStack.removeFirst()
         do {
-            let result = try await edgeAgent.using(ability: DidcommAgentAbility.self, action: "verify the presentation")
-                .didcommAgent.verifyPresentation(message: presentation)
-            assertThat(result, equalTo(expected))
+            let result = try await edgeAgent.using(
+                ability: DidcommAgentAbility.self,
+                action: "verify the presentation"
+            ).didcommAgent.verifyPresentation(message: presentation)
+            assertThat(isRevoked, equalTo(false))
         } catch let error as PolluxError {
             switch error {
-            case .credentialIsRevoked:
-                assertThat(expected == false)
+            case .cannotVerifyCredential(let credential, let internalErrors):
+                assertThat(internalErrors.count == 1)
+                if internalErrors[0] is PolluxError {
+                    switch internalErrors[0] as! PolluxError {
+                    case .credentialIsRevoked:
+                        assertThat(isRevoked, equalTo(true))
+                    default:
+                        throw internalErrors[0]
+                    }
+                } else {
+                    throw internalErrors[0]
+                }
             default:
                 throw error
             }

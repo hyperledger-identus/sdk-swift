@@ -424,8 +424,8 @@ class CloudAgentAPI: Ability {
         )
         
         let proof = Components.Schemas.ProofRequestAux(
-            schemaId: Config.jwtSchemaGuid,
-            trustIssuers: []
+            schemaId: "\(Config.agentUrl)/schema-registry/schemas/\(Config.jwtSchemaGuid)",
+            trustIssuers: [Config.publishedSecp256k1Did]
         )
         
         let body = Components.Schemas.RequestPresentationInput(
@@ -436,6 +436,38 @@ class CloudAgentAPI: Ability {
         )
         
         let response = try await client.requestPresentation(body: .json(body))
+        
+        switch(response){
+        case .created(let createdResponse):
+            switch(createdResponse.body){
+            case .json(let body):
+                return body
+            }
+        default:
+            throw Error.WrongResponse(response)
+        }
+    }
+    
+    func requestSdJwtPresentProof(_ connectionId: String) async throws -> Components.Schemas.PresentationStatus {
+        let options = Components.Schemas.Options(
+            challenge: UUID().uuidString,
+            domain: Config.agentUrl
+        )
+        let proof = Components.Schemas.ProofRequestAux(
+            schemaId: "\(Config.agentUrl)/schema-registry/schemas/\(Config.sdJwtSchemaGuid)",
+            trustIssuers: [Config.publishedEd25519Did]
+        )
+        let claims = Components.Schemas.Obj()
+        
+        let presentProofRequest = Components.Schemas.RequestPresentationInput(
+            connectionId: connectionId,
+            options: options,
+            proofs: [proof],
+            claims: claims,
+            credentialFormat: "SDJWT"
+        )
+
+        let response = try await client.requestPresentation(body: .json(presentProofRequest))
         
         switch(response){
         case .created(let createdResponse):

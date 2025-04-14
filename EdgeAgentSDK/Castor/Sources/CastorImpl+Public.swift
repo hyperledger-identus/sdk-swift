@@ -1,5 +1,6 @@
 import Domain
 import Foundation
+import Multibase
 
 extension CastorImpl: Castor {
     /// parseDID parses a string representation of a Decentralized Identifier (DID) into a DID object. This function may throw an error if the string is not a valid DID.
@@ -143,17 +144,22 @@ extension CastorImpl: Castor {
             .maskedMetadataByLevel(key: "DID", value: did.string, level: .debug)
         ])
 
-        guard
-            let resolver = resolvers.first(where: { $0.method == did.method })
-        else {
-            logger.error(message: "No resolvers for DID method \(did.method)", metadata: [
-                .maskedMetadataByLevel(key: "DID", value: did.string, level: .debug)
-            ])
-            throw CastorError.noResolversAvailableForDIDMethod(method: did.method)
+        let resolvers = resolvers.filter({ $0.method == did.method })
+        for var resolver in resolvers {
+            do {
+                let resolved = try await resolver.resolve(did: did)
+                return resolved
+            } catch {
+                logger.debug(message: "Resolver \(String(describing: type(of: resolver))) failed with error \(error.localizedDescription)")
+            }
         }
-        return try await resolver.resolve(did: did)
+        
+        logger.error(message: "No resolvers for DID method \(did.method)", metadata: [
+            .maskedMetadataByLevel(key: "DID", value: did.string, level: .debug)
+        ])
+        throw CastorError.noResolversAvailableForDIDMethod(method: did.method)
     }
-
+    
     public func getDIDPublicKeys(did: DID) async throws -> [PublicKey] {
         let document = try await resolveDID(did: did)
 
@@ -165,6 +171,32 @@ extension CastorImpl: Castor {
 
     private func verificationMethodToPublicKey(method: DIDDocument.VerificationMethod) async throws -> PublicKey {
         switch method.type {
+        case "JsonWebKey2020":
+            guard let publicKeyJwk = method.publicKeyJwk else {
+                throw CastorError.cannotRetrievePublicKeyFromDocument
+            }
+            guard let type = publicKeyJwk["kty"],
+                  let encodedX = publicKeyJwk["x"],
+                  let encodedY = publicKeyJwk["y"],
+                  let curve = publicKeyJwk["crv"]
+            else {
+                throw CastorError.invalidJWKError
+            }
+
+            guard let x = try? BaseEncoding.decode(encodedX, as: .base64Url).data.base64EncodedString(),
+                  let y = try? BaseEncoding.decode(encodedY, as: .base64Url).data.base64EncodedString()
+            else {
+                throw CastorError.invalidJWKError
+            }
+
+            return try apollo.createPublicKey(
+                parameters: [
+                    KeyProperties.type.rawValue: type,
+                    KeyProperties.curvePointX.rawValue: x,
+                    KeyProperties.curvePointY.rawValue: y,
+                    KeyProperties.curve.rawValue: curve
+                ]
+            )
         case "EcdsaSecp256k1VerificationKey2019", "secp256k1":
             guard let multibaseData = method.publicKeyMultibase else {
                 throw CastorError.cannotRetrievePublicKeyFromDocument

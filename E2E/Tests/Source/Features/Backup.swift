@@ -29,11 +29,12 @@ final class BackupFeature: Feature {
             .and("Edge Agent creates '5' peer DIDs")
             .and("Edge Agent creates '3' prism DIDs")
             .and("Edge Agent has created a backup")
+            .and("Restored Agent is created using Edge Agent seed")
             .then("a new Restored Agent is restored from Edge Agent")
             .and("Restored Agent should have the expected values from Edge Agent")
             .and("Edge Agent is dismissed")
             .given("Cloud Agent is connected to Restored Agent")
-            .and("Cloud Agent asks for present-proof")
+            .and("Cloud Agent asks for jwt present-proof")
             .when("Restored Agent sends the present-proof")
             .then("Cloud Agent should see the present-proof is verified")
     }

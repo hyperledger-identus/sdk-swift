@@ -24,9 +24,14 @@ class CloudAgentSteps: Steps {
         try await cloudAgent.remember(key: "recordIdList", value: recordIdList)
     }
     
-    @Step("{actor} asks for present-proof")
-    var cloudAgentAsksForPresentProof = { (cloudAgent: Actor) in
-        try await CloudAgentWorkflow.asksForPresentProof(cloudAgent: cloudAgent)
+    @Step("{actor} asks for jwt present-proof")
+    var cloudAgentAsksForJwtPresentProof = { (cloudAgent: Actor) in
+        try await CloudAgentWorkflow.asksForJwtPresentProof(cloudAgent: cloudAgent)
+    }
+    
+    @Step("{actor} asks for sdjwt present-proof")
+    var cloudAgentAsksForSdJwtPresentProof = { (cloudAgent: Actor) in
+        try await CloudAgentWorkflow.askForSdJwtPresentProof(cloudAgent: cloudAgent)
     }
     
     @Step("{actor} asks for anonymous present-proof")

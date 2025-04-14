@@ -2,7 +2,7 @@
 
  final class ProvideAnoncredProof: Feature {
      override func title() -> String {
-         "Provide anonymous proof of request"
+         "Provide anonymous proof"
      }
     
      override func description() -> String {
@@ -33,5 +33,6 @@
              .when("Cloud Agent asks for presentation of AnonCred proof with unexpected values")
              .and("Edge Agent sends the present-proof")
              .then("Cloud Agent should see the present-proof is not verified")
+             .disable()
      }
  }

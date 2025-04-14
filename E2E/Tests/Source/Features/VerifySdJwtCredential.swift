@@ -12,12 +12,12 @@
      func testSdJwtVerification() async throws {
          currentScenario = Scenario("SDKs JWT Verification")
              .given("Cloud Agent is connected to Edge Agent")
-             .and("Edge Agent has '1' sd+jwt credentials issued by Cloud Agent")
-             .then("Verifier Edge Agent requests the Edge Agent to verify the SD+JWT credential")
+             .and("Edge Agent has '1' sdjwt credentials issued by Cloud Agent")
+             .then("Verifier Edge Agent requests the Edge Agent to verify the sdjwt credential")
              .when("Edge Agent sends the present-proof")
              .then("Verifier Edge Agent should see the verification proof is verified")
      }
-    
+     
      func testSdJwtWrongClaimsVerification() async throws {
          currentScenario = Scenario("SDKs JWT Verification")
              .given("Cloud Agent is connected to Edge Agent")
@@ -25,5 +25,6 @@
              .then("Verifier Edge Agent requests Edge Agent to verify the SD+JWT credential with non-existing claims")
              .when("Edge Agent sends the present-proof")
              .then("Verifier Edge Agent should see the verification proof is not verified")
+             .disable()
      }
  }

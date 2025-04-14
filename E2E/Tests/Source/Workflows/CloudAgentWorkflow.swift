@@ -61,12 +61,21 @@ class CloudAgentWorkflow {
         try await cloudAgent.remember(key: "recordId", value: credentialOfferRecord.recordId)
     }
     
-    static func asksForPresentProof(cloudAgent: Actor) async throws {
+    static func asksForJwtPresentProof(cloudAgent: Actor) async throws {
         let connectionId: String = try await cloudAgent.recall(key: "connectionId")
         let presentation = try await cloudAgent.using(
             ability: CloudAgentAPI.self,
             action: "ask a presentation proof to \(connectionId)"
         ).requestPresentProof(connectionId)
+        try await cloudAgent.remember(key: "presentationId", value: presentation.presentationId)
+    }
+    
+    static func askForSdJwtPresentProof(cloudAgent: Actor) async throws {
+        let connectionId: String = try await cloudAgent.recall(key: "connectionId")
+        let presentation = try await cloudAgent.using(
+            ability: CloudAgentAPI.self,
+            action: "asks a sd+jwt presentation proof to \(connectionId)"
+        ).requestSdJwtPresentProof(connectionId)
         try await cloudAgent.remember(key: "presentationId", value: presentation.presentationId)
     }
     

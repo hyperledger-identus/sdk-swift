@@ -76,7 +76,6 @@ open class TestConfiguration: ITestConfiguration {
     
     public func beforeFeature(_ feature: Feature) async throws {
         let type: Feature.Type = type(of: feature)
-        try await self.setUpActors()
         
         if (features.contains(where: { $0 == type })) {
             return
@@ -91,6 +90,7 @@ open class TestConfiguration: ITestConfiguration {
     
     public func beforeScenario(_ scenario: Scenario) async throws {
         try await report(.BEFORE_SCENARIO, scenario)
+        try await self.setUpActors()
     }
     
     public func beforeStep(_ step: ConcreteStep) async throws {
@@ -145,10 +145,10 @@ open class TestConfiguration: ITestConfiguration {
             currentFeatureOutcome!.failedScenarios.append(scenarioOutcome)
         }
         try await report(.AFTER_SCENARIO, scenarioOutcome)
+        try await tearDownActors()
     }
     
     public func afterFeature(_ featureOutcome: FeatureOutcome) async throws {
-        try await tearDownActors()
         try await report(.AFTER_FEATURE, featureOutcome)
     }
     
