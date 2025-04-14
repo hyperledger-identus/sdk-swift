@@ -44,11 +44,13 @@ extension CDMessageDAO: MessageStore {
             .first()
             .map { $0.first }
             .flatMap { pair in
-                self.updateOrCreate(
-                    msg.id,
-                    context: writeContext
-                ) { cdobj, _ in
-                    try cdobj.fromDomain(msg: msg, direction: direction, pair: pair)
+                Future {
+                    self.updateOrCreate(
+                        msg.id,
+                        context: writeContext
+                    ) { cdobj, _ in
+                        try cdobj.fromDomain(msg: msg, direction: direction, pair: pair)
+                    }
                 }
             }
             .map { _ in }
