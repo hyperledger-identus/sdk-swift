@@ -345,10 +345,16 @@ class EdgeAgentWorkflow {
             .using(ability: DidcommAgentAbility.self, action: "gets did pairs")
             .didcommAgent.pluto.getAllDidPairs().first().await()
         
-        assertThat(actualCredentials.count, equalTo(expectedCredentials.count))
-        assertThat(actualPeerDids.count, equalTo(expectedPeerDids.count))
-        assertThat(actualPrismDids.count, equalTo(expectedPrismDids.count))
-        assertThat(actualDidPairs.count, equalTo(expectedDidPairs.count))
+        let previousPeerDids: Int = try await newAgent.recall(key: "currentPeerDids")
+        let previousPrismDids: Int = try await newAgent.recall(key: "currentPrismDids")
+        let previousCredentials: Int = try await newAgent.recall(key: "currentCredentials")
+        let previousCurrentDidPairs: Int = try await newAgent.recall(key: "currentDidPairs")
+        
+        // adds any previous data from the old agent before restoring the backup
+        assertThat(actualCredentials.count, equalTo(expectedCredentials.count + previousCredentials))
+        assertThat(actualPeerDids.count, equalTo(expectedPeerDids.count + previousPeerDids))
+        assertThat(actualPrismDids.count, equalTo(expectedPrismDids.count + previousPrismDids))
+        assertThat(actualDidPairs.count, equalTo(expectedDidPairs.count + previousCurrentDidPairs))
         
         expectedCredentials.forEach { expectedCredential in
             assertThat(actualCredentials.contains(where: { $0.id == expectedCredential.id }), equalTo(true))

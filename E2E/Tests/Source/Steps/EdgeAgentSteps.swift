@@ -127,22 +127,31 @@ class EdgeAgentSteps: Steps {
     var newAgentIsCreatedUsingAgentSeed = { (newAgent: Actor, oldAgent: Actor) async throws in
         let seed: Seed = try await oldAgent.recall(key: "seed")
         _ = newAgent.whoCanUse(DidcommAgentAbility(seed: seed))
+        
         let peerDids = try await newAgent.using(
             ability: DidcommAgentAbility.self,
             action: "gets peer dids"
-        ).didcommAgent.pluto.getAllPeerDIDs()
+        ).didcommAgent.pluto.getAllPeerDIDs().first().await()
         
         let prismDids = try await newAgent.using(
             ability: DidcommAgentAbility.self,
             action: "gets prism dids"
-        ).didcommAgent.pluto.getAllPrismDIDs()
+        ).didcommAgent.pluto.getAllPrismDIDs().first().await()
         
         let credentials = try await newAgent.using(
             ability: DidcommAgentAbility.self,
             action: "gets credentials"
-        ).didcommAgent.pluto.getAllCredentials()
+        ).didcommAgent.pluto.getAllCredentials().first().await()
         
+        let didPairs = try await newAgent.using(
+            ability: DidcommAgentAbility.self,
+            action: "get key pairs"
+        ).didcommAgent.pluto.getAllDidPairs().first().await()
         
+        try await newAgent.remember(key: "currentPeerDids", value: peerDids.count)
+        try await newAgent.remember(key: "currentPrismDids", value: prismDids.count)
+        try await newAgent.remember(key: "currentCredentials", value: prismDids.count)
+        try await newAgent.remember(key: "currentDidPairs", value: didPairs.count)
     }
     
     @Step("a new {actor} is restored from {actor}")
