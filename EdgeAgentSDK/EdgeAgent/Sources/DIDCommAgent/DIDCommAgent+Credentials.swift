@@ -30,7 +30,7 @@ public extension DIDCommAgent {
         )
         let attachment: AttachmentDescriptor
         switch type {
-        case .jwt:
+        case .jwt, .sdjwt:
             let data = try AttachmentBase64(base64: rqstStr.tryToData().base64URLEncoded())
             attachment = AttachmentDescriptor(
                 mediaType: "application/json",
