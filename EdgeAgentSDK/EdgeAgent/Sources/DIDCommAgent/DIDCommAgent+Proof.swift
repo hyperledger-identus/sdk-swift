@@ -54,24 +54,19 @@ public extension DIDCommAgent {
 
             let subjectDID = try DID(string: subjectDIDString)
 
-            let privateKeys = try await pluto.getDIDPrivateKeys(did: subjectDID).first().await()
-
             guard
-                let storedPrivateKey = privateKeys?.first
+                let storedPrivateKeys = try await pluto.getDIDPrivateKeys(did: subjectDID).first().await()
             else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
 
-            let privateKey = try await apollo.restorePrivateKey(storedPrivateKey)
-
-            guard
-                let exporting = privateKey.exporting
-            else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
+            let privateKeys = try await storedPrivateKeys.asyncMap { try await apollo.restorePrivateKey($0) }
+            let exporting = privateKeys.compactMap(\.exporting)
 
             format = requestType == "prism/jwt" ? "prism/jwt" : "dif/presentation-exchange/submission@v1.0"
 
             presentationString = try proofableCredential.presentation(
                 request: request.makeMessage(),
                 options: options + [
-                    .exportableKey(exporting),
+                    .exportableKeys(exporting),
                     .subjectDID(subjectDID)
                 ]
             )

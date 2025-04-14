@@ -110,6 +110,28 @@ Could not find key in storage please use Castor instead and provide the private 
             ])
             usingKeys.append((.master, usingPrivateKey))
         }
+
+        if usingKeys.count == 1 {
+            let lastKeyPairIndex = try await pluto
+                .getPrismLastKeyPairIndex()
+                .first()
+                .await()
+
+            // If the user provided a key path index use it, if not use the last + 1
+            let index = keyPathIndex ?? (lastKeyPairIndex + 1)
+            // Create the key pair
+            let usingPrivateKey = try apollo.createPrivateKey(parameters: [
+                KeyProperties.type.rawValue: "EC",
+                KeyProperties.seed.rawValue: seed.value.base64Encoded(),
+                KeyProperties.curve.rawValue: KnownKeyCurves.secp256k1.rawValue,
+                KeyProperties.derivationPath.rawValue: EdgeAgentDerivationPath(
+                    keyPurpose: .authentication,
+                    keyIndex: index
+                ).derivationPath.keyPathString()
+            ])
+            usingKeys.append((.authentication, usingPrivateKey))
+        }
+
         let groupedKeys = Dictionary(grouping: usingKeys, by: { $0.0 })
         let finalKeys = groupedKeys.flatMap { (key, value) in
             value.enumerated().map {
