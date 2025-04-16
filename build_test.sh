@@ -3,7 +3,7 @@
 set -e
 
 DERIVED_DATA_DIR="$HOME/.derivedData"
-DESTINATION="platform=iOS Simulator,name=IPhone 14"
+DESTINATION="platform=iOS Simulator,name=iPhone 16"
 SCHEME="EdgeAgentSDK-Package"
 LCOV_DIR="$DERIVED_DATA_DIR/lcov"
 
