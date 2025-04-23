@@ -53,11 +53,16 @@ struct JWTPresentation {
         }
         
         guard
-            let exportableKeyOption = options.first(where: {
-                if case .exportableKey = $0 { return true }
+            let exportableKeysOption = options.first(where: {
+                if case .exportableKeys = $0 { return true }
                 return false
             }),
-            case let CredentialOperationsOptions.exportableKey(exportableKey) = exportableKeyOption
+            case let CredentialOperationsOptions.exportableKeys(exportableKeys) = exportableKeysOption,
+            let exportableFirstKey = exportableKeys
+                .filter({
+                    $0.jwk.crv?.lowercased() == "secp256k1"
+                    && !($0.jwk.kid?.contains("#master") ?? true) // TODO: This is a hardcoded fix, since prism DID doesnt not recognize master key
+            }).first
         else {
             throw PolluxError.requiresExportableKeyForOperation(operation: "Create Presentation JWT Credential")
         }
@@ -68,7 +73,7 @@ struct JWTPresentation {
                 credential: credential,
                 request: requestData,
                 did: did,
-                exportableKey: exportableKey
+                exportableKey: exportableFirstKey
             )
         default:
             let payload = try vcPresentation(
@@ -79,7 +84,7 @@ struct JWTPresentation {
 
             return try vcPresentationJWTString(
                 payload: payload,
-                exportableKey: exportableKey
+                exportableKey: exportableFirstKey
             )
         }
     }

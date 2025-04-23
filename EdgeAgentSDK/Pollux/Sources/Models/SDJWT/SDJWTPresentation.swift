@@ -12,11 +12,16 @@ struct SDJWTPresentation {
         options: [CredentialOperationsOptions]
     ) throws -> String{
         guard
-            let exportableKeyOption = options.first(where: {
-                if case .exportableKey = $0 { return true }
+            let exportableKeysOption = options.first(where: {
+                if case .exportableKeys = $0 { return true }
                 return false
             }),
-            case let CredentialOperationsOptions.exportableKey(exportableKey) = exportableKeyOption
+            case let CredentialOperationsOptions.exportableKeys(exportableKeys) = exportableKeysOption,
+            let exportableFirstKey = exportableKeys
+                .filter({
+                    $0.jwk.crv?.lowercased() == "secp256k1"
+                    && !($0.jwk.kid?.contains("#master") ?? true) // TODO: This is a hardcoded fix, since prism DID doesnt not recognize master key
+            }).first
         else {
             throw PolluxError.requiresExportableKeyForOperation(operation: "Create Presentation for SD-JWT Credential")
         }
@@ -41,14 +46,14 @@ struct SDJWTPresentation {
                 credential: credential,
                 request: requestData,
                 disclosingClaims: disclosingClaims,
-                key: exportableKey
+                key: exportableFirstKey
             )
         default:
             return try vcPresentation(
                 credential: credential,
                 request: requestData,
                 disclosingClaims: disclosingClaims,
-                key: exportableKey
+                key: exportableFirstKey
             )
         }
     }
