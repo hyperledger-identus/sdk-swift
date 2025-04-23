@@ -20,6 +20,8 @@ echo "Cleaning lcov partials directory"
 rm -rf "$LCOV_DIR"
 mkdir "$LCOV_DIR"
 
+set -euo pipefail
+
 # Run build and test
 echo "Running build and test"
 xcodebuild -scheme "EdgeAgentSDK-Package" \

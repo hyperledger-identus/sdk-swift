@@ -114,7 +114,7 @@ extension PolluxImpl {
                     )
                 }
             let presentationDefinition = PresentationDefinition(
-                format: .init(sdJwt: .init(alg: [.ES256K])),
+                format: .init(sdJwt: .init(alg: [.EdDSA, .ES256K])),
                 inputDescriptors: descriptors
             )
 

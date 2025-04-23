@@ -109,7 +109,7 @@ final class PresentationExchangeFlowTests: XCTestCase {
 
         logger.info("Creating presentation request")
         let message = try edgeAgent.initiatePresentationRequest(
-            type: .jwt,
+            type: .sdjwt,
             fromDID: DID(method: "test", methodId: "alice"),
             toDID: DID(method: "test", methodId: "bob"),
             claimFilters: [
@@ -152,7 +152,8 @@ final class PresentationExchangeFlowTests: XCTestCase {
         )
 
         guard
-            let key = try await edgeAgent.pluto.getDIDPrivateKeys(did: issuerDID).first().await()?.first,
+            let key = try await edgeAgent.pluto.getDIDPrivateKeys(did: issuerDID).first().await()?.first(where: { $0.identifier.contains("authentication0")
+            }),
             let jwkD = try await edgeAgent.apollo.restorePrivateKey(key).exporting?.jwk
         else {
             XCTFail()
@@ -167,7 +168,8 @@ final class PresentationExchangeFlowTests: XCTestCase {
 
     private func makeCredentialSDJWT(issuerDID: DID, subjectDID: DID) async throws -> String {
         guard
-            let key = try await edgeAgent.pluto.getDIDPrivateKeys(did: issuerDID).first().await()?.first,
+            let key = try await edgeAgent.pluto.getDIDPrivateKeys(did: issuerDID).first().await()?.first(where: { $0.identifier.contains("authentication0")
+            }),
             let jwkD = try await edgeAgent.apollo.restorePrivateKey(key).exporting?.jwk
         else {
             XCTFail()
