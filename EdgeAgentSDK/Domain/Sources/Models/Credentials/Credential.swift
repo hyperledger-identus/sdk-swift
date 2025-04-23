@@ -7,6 +7,9 @@ public enum CredentialType {
 
     /// Represents a credential in AnonCred (Anonymous Credentials) format.
     case anoncred
+
+    /// Represents a credential in SDJWT (Selective Disclosure JSON Web Token) format.
+    case sdjwt
 }
 
 /// `Claim` represents a claim in a credential. Claims are the attributes associated with the subject of a credential.

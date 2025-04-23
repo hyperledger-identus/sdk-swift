@@ -39,7 +39,7 @@ extension PolluxImpl {
                     )
                 }
             let presentationDefinition = PresentationDefinition(
-                format: .init(jwt: .init(alg: [.ES256K]), sdJwt: .init(alg: [.ES256K])),
+                format: .init(jwt: .init(alg: [.ES256K])),
                 inputDescriptors: descriptors
             )
 
@@ -85,6 +85,44 @@ extension PolluxImpl {
             )
 
             return try JSONEncoder.didComm().encode(anoncredsPresentation)
+
+        case .sdjwt:
+            let descriptors = claimFilters
+                .map {
+                    InputDescriptor(
+                        name: $0.name,
+                        purpose: $0.purpose,
+                        group: nil,
+                        constraints: .init(
+                            fields: [
+                                .init(
+                                    optional: !$0.required,
+                                    path: $0.paths,
+                                    purpose: $0.purpose,
+                                    intentToRetain: nil,
+                                    name: $0.name,
+                                    filter: .init(
+                                        type: $0.type,
+                                        format: $0.format,
+                                        const: $0.const,
+                                        pattern: $0.pattern
+                                    ),
+                                    predicate: nil
+                                )
+                            ]
+                        )
+                    )
+                }
+            let presentationDefinition = PresentationDefinition(
+                format: .init(sdJwt: .init(alg: [.ES256K])),
+                inputDescriptors: descriptors
+            )
+
+            let container = PresentationExchangeRequest(
+                options: .init(domain: UUID().uuidString, challenge: UUID().uuidString),
+                presentationDefinition: presentationDefinition
+            )
+            return try JSONEncoder.didComm().encode(container)
         }
     }
 }
