@@ -19,7 +19,7 @@ struct SDJWTPresentation {
             case let CredentialOperationsOptions.exportableKeys(exportableKeys) = exportableKeysOption,
             let exportableFirstKey = exportableKeys
                 .filter({
-                    $0.jwk.crv?.lowercased() == "secp256k1"
+                    $0.jwk.crv?.lowercased() == "ed25519"
                     && !($0.jwk.kid?.contains("#master") ?? true) // TODO: This is a hardcoded fix, since prism DID doesnt not recognize master key
             }).first
         else {

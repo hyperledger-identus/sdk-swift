@@ -14,8 +14,10 @@ struct JWTPresentationExchangeParser: SubmissionDescriptorFormatParser {
             throw PolluxError.credentialPathInvalid(path: path)
         }
 
-        guard try await verifier.verifyJWT(jwtString: jwt) else {
-            throw PolluxError.cannotVerifyCredential(credential: jwt, internalErrors: [])
+        do {
+            try await verifier.verifyJWT(jwtString: jwt)
+        } catch {
+            throw PolluxError.cannotVerifyCredential(credential: jwt, internalErrors: [error])
         }
 
         return jwt

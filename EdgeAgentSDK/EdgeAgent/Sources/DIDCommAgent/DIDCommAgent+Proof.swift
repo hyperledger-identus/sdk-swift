@@ -74,7 +74,7 @@ public extension DIDCommAgent {
             throw EdgeAgentError.invalidAttachmentFormat(requestType)
         }
 
-        Logger(label: "").log(level: .info, "Presentation: \(presentationString)")
+        SDKLogger(category: .edgeAgent).info(message: "Presentation: \(presentationString)")
 
         let base64String = try presentationString.tryToData().base64URLEncoded()
 

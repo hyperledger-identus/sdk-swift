@@ -15,8 +15,10 @@ struct SDJWTPresentationExchangeParser: SubmissionDescriptorFormatParser {
             throw PolluxError.credentialPathInvalid(path: path)
         }
 
-        guard try await verifier.verifySDJWT(sdjwtString: sdjwt) else {
-            throw PolluxError.cannotVerifyCredential(credential: sdjwt, internalErrors: [])
+        do {
+            _ = try await verifier.verifySDJWT(sdjwtString: sdjwt)
+        } catch {
+            throw PolluxError.cannotVerifyCredential(credential: sdjwt, internalErrors: [error])
         }
 
         return sdjwt

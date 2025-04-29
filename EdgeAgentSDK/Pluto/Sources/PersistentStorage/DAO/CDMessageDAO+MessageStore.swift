@@ -52,10 +52,6 @@ extension CDMessageDAO: MessageStore {
                 }
             }
             .map { _ in }
-            .mapError {
-                print($0)
-                return $0
-            }
             .eraseToAnyPublisher()
     }
 
