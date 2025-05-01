@@ -145,7 +145,7 @@ extension ApolloImpl: Apollo {
         case ValidCryptographicTypes.ec.rawValue:
             guard
                 let curveStr = parameters[KeyProperties.curve.rawValue],
-                let curve = ValidECCurves(rawValue: curveStr)
+                let curve = ValidECCurves(rawValue: curveStr.lowercased())
             else {
                 throw ApolloError.invalidKeyCurve(
                     invalid: parameters[KeyProperties.curve.rawValue] ?? "",
@@ -181,6 +181,44 @@ extension ApolloImpl: Apollo {
                 else {
                     throw ApolloError.missingKeyParameters(missing: [KeyProperties.rawKey.rawValue])
                 }
+                return X25519PublicKey(identifier: identifier, raw: keyData)
+            }
+        case ValidCryptographicTypes.okp.rawValue:
+            guard
+                let curveStr = parameters[KeyProperties.curve.rawValue],
+                let curve = ValidOKPCurves(rawValue: curveStr.lowercased())
+            else {
+                throw ApolloError.invalidKeyCurve(
+                    invalid: parameters[KeyProperties.curve.rawValue] ?? "",
+                    valid: ValidOKPCurves.allCases.map(\.rawValue)
+                )
+            }
+            switch curve {
+            case .ed25519:
+                guard
+                    let keyData = parameters[KeyProperties.rawKey.rawValue].flatMap({ Data(base64Encoded: $0) })
+                else {
+                    guard
+                        let keyData = parameters[KeyProperties.curvePointX.rawValue].flatMap({ Data(base64Encoded: $0) })
+                    else {
+                        throw ApolloError.missingKeyParameters(missing: [
+                            KeyProperties.rawKey.rawValue, KeyProperties.curvePointX.rawValue
+                        ])                    }
+                    return Ed25519PublicKey(identifier: identifier, raw: keyData)
+                }
+                return Ed25519PublicKey(identifier: identifier, raw: keyData)
+            case .x25519:
+                guard
+                    let keyData = parameters[KeyProperties.rawKey.rawValue].flatMap({ Data(base64Encoded: $0) })
+                else {
+                    guard
+                        let keyData = parameters[KeyProperties.curvePointX.rawValue].flatMap({ Data(base64Encoded: $0) })
+                    else {
+                        throw ApolloError.missingKeyParameters(missing: [
+                            KeyProperties.rawKey.rawValue, KeyProperties.curvePointX.rawValue
+                        ])
+                    }
+                    return X25519PublicKey(identifier: identifier, raw: keyData)                }
                 return X25519PublicKey(identifier: identifier, raw: keyData)
             }
         default:

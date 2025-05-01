@@ -3,9 +3,11 @@ import Foundation
 import eudi_lib_sdjwt_swift
 import JSONWebKey
 import JSONWebToken
+import Core
 
 struct VerifySDJWT {
     let castor: Castor
+    let logger: SDKLogger
 
     func verifySDJWT(sdjwtString: String) async throws -> Bool {
         let issuer = try getIssuer(sdjwtString: sdjwtString)
@@ -28,7 +30,7 @@ struct VerifySDJWT {
                 }
                 isVerified = true
             } catch {
-                print(error)
+                logger.warning(message: "A verification try with key \(key.keyID) failed with error \(error.localizedDescription)")
             }
         }
         return isVerified

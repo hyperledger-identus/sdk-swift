@@ -101,8 +101,22 @@ final class PresentationExchangeFlowTests: XCTestCase {
     }
 
     func testSDJWTPresentationRequest() async throws {
-        let prismDID = try await edgeAgent.createNewPrismDID()
-        let subjectDID = try await edgeAgent.createNewPrismDID()
+        let authenticationEd25519KeyIssuer = try edgeAgent.apollo.createPrivateKey(parameters: [
+            KeyProperties.type.rawValue: "EC",
+            KeyProperties.curve.rawValue: KnownKeyCurves.ed25519.rawValue
+        ])
+
+        let authenticationEd25519KeySubject = try edgeAgent.apollo.createPrivateKey(parameters: [
+            KeyProperties.type.rawValue: "EC",
+            KeyProperties.curve.rawValue: KnownKeyCurves.ed25519.rawValue
+        ])
+
+        let prismDID = try await edgeAgent.createNewPrismDID(
+            keys: [(.authentication, authenticationEd25519KeyIssuer)]
+        )
+        let subjectDID = try await edgeAgent.createNewPrismDID(
+            keys: [(.authentication, authenticationEd25519KeySubject)]
+        )
 
         let sdjwt = try await makeCredentialSDJWT(issuerDID: prismDID, subjectDID: subjectDID)
         let credential = try SDJWTCredential(sdjwtString: sdjwt)
