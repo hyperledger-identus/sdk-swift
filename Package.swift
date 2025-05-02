@@ -65,7 +65,7 @@ let package = Package(
         .package(url: "https://github.com/kylef/JSONSchema.swift.git", exact: "0.6.0"),
         .package(url: "https://github.com/eu-digital-identity-wallet/eudi-lib-sdjwt-swift.git", from: "0.1.0"),
         .package(url: "https://github.com/1024jp/GzipSwift.git", exact: "6.0.0"),
-        .package(url: "https://github.com/goncalo-frade-iohk/eudi-lib-ios-openid4vci-swift.git", branch: "feature/add-w3cvc-support")
+        .package(url: "https://github.com/goncalo-frade-iohk/eudi-lib-ios-openid4vci-swift.git", from: "0.9.0")
     ],
     targets: [
         .target(

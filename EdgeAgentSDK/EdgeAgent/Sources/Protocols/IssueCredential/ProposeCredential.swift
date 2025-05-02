@@ -5,13 +5,13 @@ import Foundation
 // ALL parameterS are DIDCOMMV2 format and naming conventions and follows the protocol
 // https://github.com/hyperledger/aries-rfcs/tree/main/features/0453-issue-credential-v2
 public struct ProposeCredential {
-    struct Body: Codable, Equatable {
-        let goalCode: String?
-        let comment: String?
-        let credentialPreview: CredentialPreview
-        let formats: [CredentialFormat]
+    public struct Body: Codable, Equatable {
+        public let goalCode: String?
+        public let comment: String?
+        public let credentialPreview: CredentialPreview
+        public let formats: [CredentialFormat]
 
-        init(
+        public init(
             goalCode: String? = nil,
             comment: String? = nil,
             credentialPreview: CredentialPreview,
@@ -26,15 +26,15 @@ public struct ProposeCredential {
 
     public let id: String
     public let type = ProtocolTypes.didcommProposeCredential.rawValue
-    let body: Body
-    let attachments: [AttachmentDescriptor]
+    public let body: Body?
+    public let attachments: [AttachmentDescriptor]
     public let thid: String?
     public let from: DID
     public let to: DID
 
     init(
         id: String = UUID().uuidString,
-        body: Body,
+        body: Body?,
         attachments: [AttachmentDescriptor],
         thid: String?,
         from: DID,
@@ -57,7 +57,7 @@ public struct ProposeCredential {
             type: fromMessage.piuri,
             shouldBe: [ProtocolTypes.didcommProposeCredential.rawValue]
         ) }
-        let body = try JSONDecoder.didComm().decode(Body.self, from: fromMessage.body)
+        let body = try? JSONDecoder.didComm().decode(Body.self, from: fromMessage.body)
         self.init(
             id: fromMessage.id,
             body: body,
@@ -119,15 +119,15 @@ extension ProposeCredential: Equatable {
 // ALL parameterS are DIDCOMMV2 format and naming conventions and follows the protocol
 // https://github.com/hyperledger/aries-rfcs/tree/main/features/0453-issue-credential-v2
 public struct ProposeCredential3_0 {
-    struct Body: Codable, Equatable {
-        let goalCode: String?
-        let comment: String?
-        let credentialPreview: CredentialPreview3_0
+    public struct Body: Codable, Equatable {
+        public let goalCode: String?
+        public let comment: String?
+        public let credentialPreview: CredentialPreview3_0?
 
-        init(
+        public init(
             goalCode: String? = nil,
             comment: String? = nil,
-            credentialPreview: CredentialPreview3_0
+            credentialPreview: CredentialPreview3_0?
         ) {
             self.goalCode = goalCode
             self.comment = comment
@@ -137,15 +137,15 @@ public struct ProposeCredential3_0 {
 
     public let id: String
     public let type = ProtocolTypes.didcommProposeCredential3_0.rawValue
-    let body: Body
-    let attachments: [AttachmentDescriptor]
+    public let body: Body?
+    public let attachments: [AttachmentDescriptor]
     public let thid: String?
     public let from: DID
     public let to: DID
 
     init(
         id: String = UUID().uuidString,
-        body: Body,
+        body: Body?,
         attachments: [AttachmentDescriptor],
         thid: String?,
         from: DID,
@@ -168,7 +168,7 @@ public struct ProposeCredential3_0 {
             type: fromMessage.piuri,
             shouldBe: [ProtocolTypes.didcommProposeCredential3_0.rawValue]
         ) }
-        let body = try JSONDecoder.didComm().decode(Body.self, from: fromMessage.body)
+        let body = try? JSONDecoder.didComm().decode(Body.self, from: fromMessage.body)
         self.init(
             id: fromMessage.id,
             body: body,

@@ -12,6 +12,7 @@ public enum CredentialOperationsOptions {
     case entropy(String)  // Entropy for any randomization operation.
     case signableKey(SignableKey)  // A key that can be used for signing.
     case exportableKey(ExportableKey)  // A key that can be exported.
+    case exportableKeys([ExportableKey])  // A key that can be exported.
     case zkpPresentationParams(attributes: [String: Bool], predicates: [String]) // Anoncreds zero-knowledge proof presentation parameters
     case disclosingClaims(claims: [String])
     case thid(String)

@@ -32,7 +32,7 @@ public struct OfferCredential {
 
     public let id: String
     public let type: String
-    public let body: Body
+    public let body: Body?
     public let attachments: [AttachmentDescriptor]
     public let thid: String?
     public let from: DID
@@ -40,7 +40,7 @@ public struct OfferCredential {
 
     public init(
         id: String = UUID().uuidString,
-        body: Body,
+        body: Body?,
         type: String,
         attachments: [AttachmentDescriptor],
         thid: String?,
@@ -67,10 +67,10 @@ public struct OfferCredential {
             shouldBe: [ProtocolTypes.didcommOfferCredential.rawValue]
         ) }
         
-        let body = try JSONDecoder.didComm().decode(Body.self, from: fromMessage.body)
+        let body = try? JSONDecoder.didComm().decode(Body.self, from: fromMessage.body)
         self.init(
             id: fromMessage.id,
-            body: .init(credentialPreview: .init(attributes: []), formats: []), // TODO: [Anoncreds] when they fix on the agent put this back
+            body: body,
             type: piuri.rawValue,
             attachments: fromMessage.attachments,
             thid: fromMessage.thid,
@@ -108,10 +108,10 @@ public struct OfferCredential {
         
         return OfferCredential(
             body: Body(
-                goalCode: proposed.body.goalCode,
-                comment: proposed.body.comment,
-                credentialPreview: proposed.body.credentialPreview,
-                formats: proposed.body.formats
+                goalCode: proposed.body?.goalCode,
+                comment: proposed.body?.comment,
+                credentialPreview: proposed.body?.credentialPreview ?? .init(attributes: []),
+                formats: proposed.body?.formats ?? []
             ),
             type: type.rawValue,
             attachments: proposed.attachments,
@@ -139,14 +139,14 @@ public struct OfferCredential3_0 {
         public let comment: String?
         public let replacementId: String?
         public let multipleAvailable: String?
-        public let credentialPreview: CredentialPreview3_0
+        public let credentialPreview: CredentialPreview3_0?
 
         public init(
             goalCode: String? = nil,
             comment: String? = nil,
             replacementId: String? = nil,
             multipleAvailable: String? = nil,
-            credentialPreview: CredentialPreview3_0
+            credentialPreview: CredentialPreview3_0?
         ) {
             self.goalCode = goalCode
             self.comment = comment
@@ -158,7 +158,7 @@ public struct OfferCredential3_0 {
 
     public let id: String
     public let type: String
-    public let body: Body
+    public let body: Body?
     public let attachments: [AttachmentDescriptor]
     public let thid: String?
     public let from: DID
@@ -166,7 +166,7 @@ public struct OfferCredential3_0 {
 
     public init(
         id: String = UUID().uuidString,
-        body: Body,
+        body: Body?,
         type: String,
         attachments: [AttachmentDescriptor],
         thid: String?,
@@ -193,7 +193,7 @@ public struct OfferCredential3_0 {
             shouldBe: [ProtocolTypes.didcommOfferCredential.rawValue]
         ) }
         
-        let body = try JSONDecoder.didComm().decode(Body.self, from: fromMessage.body)
+        let body = try? JSONDecoder.didComm().decode(Body.self, from: fromMessage.body)
         self.init(
             id: fromMessage.id,
             body: body,
@@ -236,9 +236,9 @@ public struct OfferCredential3_0 {
         
         return OfferCredential3_0(
             body: Body(
-                goalCode: proposed.body.goalCode,
-                comment: proposed.body.comment,
-                credentialPreview: proposed.body.credentialPreview
+                goalCode: proposed.body?.goalCode,
+                comment: proposed.body?.comment,
+                credentialPreview: proposed.body?.credentialPreview
             ),
             type: type.rawValue,
             attachments: proposed.attachments,

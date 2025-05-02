@@ -166,7 +166,7 @@ private func getDomainAndChallenge(msg: Message) throws -> (domain: String?, cha
         .map({
             switch $0.data {
             case let json as AttachmentJsonData:
-                return json.data
+                return json.json
             default:
                 return nil
             }
@@ -174,7 +174,7 @@ private func getDomainAndChallenge(msg: Message) throws -> (domain: String?, cha
         .compactMap({ $0 })
         .first
     else { throw PolluxError.offerDoesntProvideEnoughInformation }
-    let jsonObject = try JSONSerialization.jsonObject(with: offerData)
+    let jsonObject = try JSONSerialization.jsonObject(with: JSONEncoder().encode(offerData))
     return (findValue(forKey: "domain", in: jsonObject), findValue(forKey: "challenge", in: jsonObject))
 }
 

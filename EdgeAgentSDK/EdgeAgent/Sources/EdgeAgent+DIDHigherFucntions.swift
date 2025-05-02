@@ -65,16 +65,32 @@ Could not find key in storage please use Castor instead and provide the private 
         alias: String? = nil,
         services: [DIDDocument.Service] = []
     ) async throws -> DID {
+        return try await createNewPrismDID(
+            keys: masterPrivateKey.map { [(KeyPurpose.master, $0)] } ?? [],
+            keyPathIndex: keyPathIndex,
+            alias: alias,
+            services: services
+        )
+    }
+
+    /// This method create a new Prism DID, that can be used to identify the agent and interact with other agents.
+    /// - Parameters:
+    ///   - keyPathIndex: key path index used to identify the DID
+    ///   - alias: An alias that can be used to identify the DID
+    ///   - services: an array of services associated to the DID
+    /// - Returns: The new created DID
+    func createNewPrismDID(
+        keys: [(KeyPurpose, PrivateKey)] = [],
+        keyPathIndex: Int? = nil,
+        alias: String? = nil,
+        services: [DIDDocument.Service] = []
+    ) async throws -> DID {
         let seed = self.seed
         let apollo = self.apollo
         let castor = self.castor
+        var usingKeys = keys
 
-        var usingPrivateKey: PrivateKey
-
-        if let masterPrivateKey {
-            usingPrivateKey = masterPrivateKey
-        }
-        else {
+        if keys.first(where: { $0.0 == .master })?.1 == nil {
             let lastKeyPairIndex = try await pluto
                 .getPrismLastKeyPairIndex()
                 .first()
@@ -83,7 +99,7 @@ Could not find key in storage please use Castor instead and provide the private 
             // If the user provided a key path index use it, if not use the last + 1
             let index = keyPathIndex ?? (lastKeyPairIndex + 1)
             // Create the key pair
-            usingPrivateKey = try apollo.createPrivateKey(parameters: [
+            let usingPrivateKey = try apollo.createPrivateKey(parameters: [
                 KeyProperties.type.rawValue: "EC",
                 KeyProperties.seed.rawValue: seed.value.base64Encoded(),
                 KeyProperties.curve.rawValue: KnownKeyCurves.secp256k1.rawValue,
@@ -92,20 +108,69 @@ Could not find key in storage please use Castor instead and provide the private 
                     keyIndex: index
                 ).derivationPath.keyPathString()
             ])
+            usingKeys.append((.master, usingPrivateKey))
         }
 
-        var publicKey = usingPrivateKey.publicKey()
+        if usingKeys.count == 1 {
+            let lastKeyPairIndex = try await pluto
+                .getPrismLastKeyPairIndex()
+                .first()
+                .await()
 
-        let newDID = try castor.createPrismDID(masterPublicKey: publicKey, services: services)
-        let kid = DIDUrl(did: newDID, fragment: "#authentication0").string
-        usingPrivateKey.identifier = kid
-        publicKey.identifier = kid
+            // If the user provided a key path index use it, if not use the last + 1
+            let index = keyPathIndex ?? (lastKeyPairIndex + 1)
+            // Create the key pair
+            let usingPrivateKey = try apollo.createPrivateKey(parameters: [
+                KeyProperties.type.rawValue: "EC",
+                KeyProperties.seed.rawValue: seed.value.base64Encoded(),
+                KeyProperties.curve.rawValue: KnownKeyCurves.secp256k1.rawValue,
+                KeyProperties.derivationPath.rawValue: EdgeAgentDerivationPath(
+                    keyPurpose: .authentication,
+                    keyIndex: index
+                ).derivationPath.keyPathString()
+            ])
+            usingKeys.append((.authentication, usingPrivateKey))
+        }
+
+        let groupedKeys = Dictionary(grouping: usingKeys, by: { $0.0 })
+        let finalKeys = groupedKeys.flatMap { (key, value) in
+            value.enumerated().map {
+                var privateKey = $0.element.1
+                var publicKey = $0.element.1.publicKey()
+                let identifier = "#\(key.rawValue)\($0.offset)"
+                privateKey.identifier = identifier
+                publicKey.identifier = identifier
+                return (key, privateKey, publicKey)
+            }
+        }
+
+        let newDID = try castor.createDID(
+            method: "prism",
+            keys: finalKeys.map {
+                ($0, $2)
+            },
+            services: services)
+
+        let finalKeysAfterDid = groupedKeys.flatMap { (key, value) in
+            value.enumerated().map {
+                var privateKey = $0.element.1
+                var publicKey = $0.element.1.publicKey()
+                let identifier = DIDUrl(did: newDID, fragment: "\(key.rawValue)\($0.offset)").string
+                privateKey.identifier = identifier
+                publicKey.identifier = identifier
+                return (key, privateKey, publicKey)
+            }
+        }
+
         logger.debug(message: "Created new Prism DID", metadata: [
             .maskedMetadataByLevel(key: "DID", value: newDID.string, level: .debug),
             .maskedMetadataByLevel(key: "keyPathIndex", value: "\(index)", level: .debug)
         ])
 
-        try await registerPrismDID(did: newDID, privateKey: usingPrivateKey, alias: alias)
+        try await registerPrismDID(
+            did: newDID,
+            keys: finalKeysAfterDid.map(\.1),
+            alias: alias)
         return newDID
     }
 
@@ -125,6 +190,34 @@ Could not find key in storage please use Castor instead and provide the private 
         ])
 
         let storablePrivateKeys = try [privateKey]
+            .map {
+                guard let storablePrivateKey = $0 as? (PrivateKey & StorableKey) else {
+                    throw KeyError.keyRequiresConformation(conformations: ["PrivateKey", "StorableKey"])
+                }
+                return storablePrivateKey
+            }
+        try await pluto
+            .storeDID(did: did, privateKeys: storablePrivateKeys, alias: alias)
+            .first()
+            .await()
+    }
+
+    /// This method registers a Prism DID, that can be used to identify the agent and interact with other agents.
+    /// - Parameters:
+    ///   - did: the DID which will be registered.
+    ///   - keyPathIndex: key path index used to identify the DID
+    ///   - alias: An alias that can be used to identify the DID
+    /// - Returns: The new created DID
+    func registerPrismDID(
+        did: DID,
+        keys: [PrivateKey],
+        alias: String? = nil
+    ) async throws {
+        logger.debug(message: "Register of DID in storage", metadata: [
+            .maskedMetadataByLevel(key: "DID", value: did.string, level: .debug)
+        ])
+
+        let storablePrivateKeys = try keys
             .map {
                 guard let storablePrivateKey = $0 as? (PrivateKey & StorableKey) else {
                     throw KeyError.keyRequiresConformation(conformations: ["PrivateKey", "StorableKey"])

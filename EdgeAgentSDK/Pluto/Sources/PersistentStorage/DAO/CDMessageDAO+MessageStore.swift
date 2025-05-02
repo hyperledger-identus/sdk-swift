@@ -44,18 +44,14 @@ extension CDMessageDAO: MessageStore {
             .first()
             .map { $0.first }
             .flatMap { pair in
-                self.updateOrCreate(
-                    msg.id,
+                self.batchUpdateOrCreate(
+                    [msg.id],
                     context: writeContext
-                ) { cdobj, _ in
+                ) { id, cdobj, _ in
                     try cdobj.fromDomain(msg: msg, direction: direction, pair: pair)
                 }
             }
             .map { _ in }
-            .mapError {
-                print($0)
-                return $0
-            }
             .eraseToAnyPublisher()
     }
 

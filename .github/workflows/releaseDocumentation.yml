@@ -19,7 +19,7 @@ permissions:
 jobs:
   build-docs:
     name: build documentation and release
-    runs-on: macos-13
+    runs-on: macos-15
     env:
       GITHUB_ACTOR: ${{ github.actor }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -28,25 +28,16 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Install SSH Key
-        uses: shimataro/ssh-key-action@v2.3.0
-        with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: github.com
-
-      - name: Adding Known Hosts
-        run: ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-
       - name: Build Docs
         uses: nick-fields/retry@v2
         with:
           max_attempts: 6
           retry_on: error
           timeout_minutes: 50
-          command: xcodebuild docbuild -scheme EdgeAgentSDK -destination "platform=macOS" -derivedDataPath ./doccBuild OTHER_DOCC_FLAGS="--transform-for-static-hosting --output-path ./docc --hosting-base-path '/identus-edge-agent-sdk-swift'"
+          command: xcodebuild docbuild -scheme EdgeAgentSDK -destination "platform=macOS" -derivedDataPath ./doccBuild OTHER_DOCC_FLAGS="--transform-for-static-hosting --output-path ./docc --hosting-base-path '/sdk-swift'"
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./docc
 
@@ -59,4 +50,4 @@ jobs:
 
     steps:
     - name: Deploy Docs
-      uses: actions/deploy-pages@v1
+      uses: actions/deploy-pages@v4

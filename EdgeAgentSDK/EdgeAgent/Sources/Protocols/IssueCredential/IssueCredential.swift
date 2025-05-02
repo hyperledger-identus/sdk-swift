@@ -29,7 +29,7 @@ public struct IssueCredential {
 
     public let id: String
     public let type: String
-    public let body: Body
+    public let body: Body?
     public let attachments: [AttachmentDescriptor]
     public let thid: String?
     public let from: DID
@@ -37,7 +37,7 @@ public struct IssueCredential {
 
     init(
         id: String = UUID().uuidString,
-        body: Body,
+        body: Body?,
         type: String,
         attachments: [AttachmentDescriptor],
         thid: String?,
@@ -65,7 +65,7 @@ public struct IssueCredential {
             shouldBe: [ProtocolTypes.didcommIssueCredential.rawValue]
         ) }
 
-        let body = try JSONDecoder.didComm().decode(Body.self, from: fromMessage.body)
+        let body = try? JSONDecoder.didComm().decode(Body.self, from: fromMessage.body)
         self.init(
             id: fromMessage.id,
             body: body,
@@ -111,9 +111,9 @@ public struct IssueCredential {
         
         return IssueCredential(
             body: Body(
-                goalCode: request.body.goalCode,
-                comment: request.body.comment,
-                formats: request.body.formats
+                goalCode: request.body?.goalCode,
+                comment: request.body?.comment,
+                formats: request.body?.formats ?? []
             ),
             type: type.rawValue,
             attachments: request.attachments,
@@ -169,7 +169,7 @@ public struct IssueCredential3_0 {
 
     public let id: String
     public let type: String
-    public let body: Body
+    public let body: Body?
     public let attachments: [AttachmentDescriptor]
     public let thid: String?
     public let from: DID
@@ -177,7 +177,7 @@ public struct IssueCredential3_0 {
 
     init(
         id: String = UUID().uuidString,
-        body: Body,
+        body: Body?,
         type: String,
         attachments: [AttachmentDescriptor],
         thid: String?,
@@ -204,7 +204,7 @@ public struct IssueCredential3_0 {
             shouldBe: [ProtocolTypes.didcommIssueCredential3_0.rawValue]
         ) }
 
-        let body = try JSONDecoder.didComm().decode(Body.self, from: fromMessage.body)
+        let body = try? JSONDecoder.didComm().decode(Body.self, from: fromMessage.body)
         self.init(
             id: fromMessage.id,
             body: body,
@@ -247,8 +247,8 @@ public struct IssueCredential3_0 {
         
         return IssueCredential3_0(
             body: Body(
-                goalCode: request.body.goalCode,
-                comment: request.body.comment
+                goalCode: request.body?.goalCode,
+                comment: request.body?.comment
             ),
             type: type.rawValue,
             attachments: request.attachments,

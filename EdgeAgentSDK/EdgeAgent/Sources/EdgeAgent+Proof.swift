@@ -53,24 +53,21 @@ public extension EdgeAgent {
 
             let subjectDID = try DID(string: subjectDIDString)
 
-            let privateKeys = try await pluto.getDIDPrivateKeys(did: subjectDID).first().await()
-
             guard
-                let storedPrivateKey = privateKeys?.first
-            else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
+                let storedPrivateKeys = try await pluto.getDIDPrivateKeys(did: subjectDID).first().await()
+            else {
+                throw EdgeAgentError.cannotFindDIDKeyPairIndex
+            }
 
-            let privateKey = try await apollo.restorePrivateKey(storedPrivateKey)
-
-            guard
-                let exporting = privateKey.exporting
-            else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
+            let privateKeys = try await storedPrivateKeys.asyncMap { try await apollo.restorePrivateKey($0) }
+            let exporting = privateKeys.compactMap(\.exporting)
 
             format = requestType == "prism/jwt" ? "prism/jwt" : "dif/presentation-exchange/submission@v1.0"
 
             presentationString = try proofableCredential.presentation(
                 request: request.makeMessage(),
                 options: [
-                    .exportableKey(exporting),
+                    .exportableKeys(exporting),
                     .subjectDID(subjectDID),
                     .disclosingClaims(claims: credential.claims.map(\.key))
                 ]
@@ -79,7 +76,7 @@ public extension EdgeAgent {
             throw EdgeAgentError.invalidAttachmentFormat(requestType)
         }
 
-        Logger(label: "").log(level: .info, "Presentation: \(presentationString)")
+        SDKLogger(category: .edgeAgent).info(message: "Presentation: \(presentationString)")
 
         let base64String = try presentationString.tryToData().base64URLEncoded()
 

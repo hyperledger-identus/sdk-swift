@@ -31,14 +31,14 @@ jobs:
         with:
             xcode-version: '15.0.1'
 
-      - name: Install SSH Key
-        uses: shimataro/ssh-key-action@v2.3.0
-        with:
-            key: ${{ secrets.SSH_PRIVATE_KEY }}
-            known_hosts: github.com
-
-      - name: Adding Known Hosts
-        run: ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+#      - name: Install SSH Key
+#        uses: shimataro/ssh-key-action@v2.3.0
+#        with:
+#            key: ${{ secrets.SSH_PRIVATE_KEY }}
+#            known_hosts: github.com
+#
+#      - name: Adding Known Hosts
+#        run: ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
       - name: Create properties file
         working-directory: E2E/e2eTests/Resources

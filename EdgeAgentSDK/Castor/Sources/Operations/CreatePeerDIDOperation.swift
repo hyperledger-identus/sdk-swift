@@ -7,14 +7,21 @@ import PeerDID
 
 struct CreatePeerDIDOperation {
     private let method: DIDMethod = "peer"
-    let autenticationPublicKey: PublicKey
-    let agreementPublicKey: PublicKey
+    let keys: [(KeyPurpose, PublicKey)]
     let services: [Domain.DIDDocument.Service]
 
     func compute() throws -> Domain.DID {
+        let authenticationKeys = try keys
+            .filter { $0.0 == .authentication }
+            .map(\.1)
+            .map(authenticationFromPublicKey(publicKey:))
+        let agreementKeys = try keys
+            .filter { $0.0 == .agreement }
+            .map(\.1)
+            .map(keyAgreementFromPublicKey(publicKey:))
         let did = try PeerDIDHelper.createAlgo2(
-            authenticationKeys: [authenticationFromPublicKey(publicKey: autenticationPublicKey)],
-            agreementKeys: [keyAgreementFromPublicKey(publicKey: agreementPublicKey)],
+            authenticationKeys: authenticationKeys,
+            agreementKeys: agreementKeys,
             services: services.flatMap { service in
                 service.serviceEndpoint.map {
                     AnyCodable(dictionaryLiteral:

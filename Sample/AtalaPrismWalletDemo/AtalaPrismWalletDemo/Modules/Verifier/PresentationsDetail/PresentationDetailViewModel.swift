@@ -156,7 +156,7 @@ public func getDataFromAttachment(attachmentDescriptor: AttachmentDescriptor) th
     case let value as AttachmentBase64:
         return Data(base64Encoded: value.base64)!
     case let value as AttachmentJsonData:
-        return value.data
+        return try JSONEncoder().encode(value.json) 
     default:
         throw UnknownError.somethingWentWrongError(customMessage: nil, underlyingErrors: nil)
     }

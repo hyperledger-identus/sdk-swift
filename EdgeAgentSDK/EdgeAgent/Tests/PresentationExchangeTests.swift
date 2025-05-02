@@ -38,7 +38,7 @@ final class PresentationExchangeFlowTests: XCTestCase {
         let credential = try JWTCredential(data: jwt.tryToData())
 
         logger.info("Creating presentation request")
-        let message = try await edgeAgent.initiatePresentationRequest(
+        let message = try edgeAgent.initiatePresentationRequest(
             type: .jwt,
             fromDID: DID(method: "test", methodId: "alice"),
             toDID: DID(method: "test", methodId: "bob"),
@@ -101,15 +101,29 @@ final class PresentationExchangeFlowTests: XCTestCase {
     }
 
     func testSDJWTPresentationRequest() async throws {
-        let prismDID = try await edgeAgent.createNewPrismDID()
-        let subjectDID = try await edgeAgent.createNewPrismDID()
+        let authenticationEd25519KeyIssuer = try edgeAgent.apollo.createPrivateKey(parameters: [
+            KeyProperties.type.rawValue: "EC",
+            KeyProperties.curve.rawValue: KnownKeyCurves.ed25519.rawValue
+        ])
+
+        let authenticationEd25519KeySubject = try edgeAgent.apollo.createPrivateKey(parameters: [
+            KeyProperties.type.rawValue: "EC",
+            KeyProperties.curve.rawValue: KnownKeyCurves.ed25519.rawValue
+        ])
+
+        let prismDID = try await edgeAgent.createNewPrismDID(
+            keys: [(.authentication, authenticationEd25519KeyIssuer)]
+        )
+        let subjectDID = try await edgeAgent.createNewPrismDID(
+            keys: [(.authentication, authenticationEd25519KeySubject)]
+        )
 
         let sdjwt = try await makeCredentialSDJWT(issuerDID: prismDID, subjectDID: subjectDID)
         let credential = try SDJWTCredential(sdjwtString: sdjwt)
 
         logger.info("Creating presentation request")
-        let message = try await edgeAgent.initiatePresentationRequest(
-            type: .jwt,
+        let message = try edgeAgent.initiatePresentationRequest(
+            type: .sdjwt,
             fromDID: DID(method: "test", methodId: "alice"),
             toDID: DID(method: "test", methodId: "bob"),
             claimFilters: [
@@ -152,7 +166,8 @@ final class PresentationExchangeFlowTests: XCTestCase {
         )
 
         guard
-            let key = try await edgeAgent.pluto.getDIDPrivateKeys(did: issuerDID).first().await()?.first,
+            let key = try await edgeAgent.pluto.getDIDPrivateKeys(did: issuerDID).first().await()?.first(where: { $0.identifier.contains("authentication0")
+            }),
             let jwkD = try await edgeAgent.apollo.restorePrivateKey(key).exporting?.jwk
         else {
             XCTFail()
@@ -167,7 +182,8 @@ final class PresentationExchangeFlowTests: XCTestCase {
 
     private func makeCredentialSDJWT(issuerDID: DID, subjectDID: DID) async throws -> String {
         guard
-            let key = try await edgeAgent.pluto.getDIDPrivateKeys(did: issuerDID).first().await()?.first,
+            let key = try await edgeAgent.pluto.getDIDPrivateKeys(did: issuerDID).first().await()?.first(where: { $0.identifier.contains("authentication0")
+            }),
             let jwkD = try await edgeAgent.apollo.restorePrivateKey(key).exporting?.jwk
         else {
             XCTFail()

@@ -49,7 +49,7 @@ final class IssueCredentialTests: XCTestCase {
         XCTAssertEqual(validRequestCredential.to, testIssueCredential.from)
         XCTAssertEqual(validRequestCredential.attachments, testIssueCredential.attachments)
         XCTAssertEqual(validRequestCredential.id, testIssueCredential.thid)
-        XCTAssertEqual(validRequestCredential.body.goalCode, validRequestCredential.body.goalCode)
-        XCTAssertEqual(validRequestCredential.body.comment, validRequestCredential.body.comment)
+        XCTAssertEqual(validRequestCredential.body?.goalCode, validRequestCredential.body?.goalCode)
+        XCTAssertEqual(validRequestCredential.body?.comment, validRequestCredential.body?.comment)
     }
 }

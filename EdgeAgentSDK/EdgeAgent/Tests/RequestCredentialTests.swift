@@ -58,7 +58,7 @@ final class RequestCredentialTests: XCTestCase {
         XCTAssertEqual(validOfferCredential.to, testRequestCredential.from)
         XCTAssertEqual(validOfferCredential.attachments, testRequestCredential.attachments)
         XCTAssertEqual(validOfferCredential.thid, testRequestCredential.thid)
-        XCTAssertEqual(validOfferCredential.body.goalCode, testRequestCredential.body.goalCode)
-        XCTAssertEqual(validOfferCredential.body.comment, testRequestCredential.body.comment)
+        XCTAssertEqual(validOfferCredential.body?.goalCode, testRequestCredential.body?.goalCode)
+        XCTAssertEqual(validOfferCredential.body?.comment, testRequestCredential.body?.comment)
     }
 }

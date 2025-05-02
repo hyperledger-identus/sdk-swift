@@ -94,9 +94,9 @@ public struct RevocationNotification {
 
         return RequestCredential(
             body: .init(
-                goalCode: offer.body.goalCode,
-                comment: offer.body.comment,
-                formats: offer.body.formats
+                goalCode: offer.body?.goalCode,
+                comment: offer.body?.comment,
+                formats: offer.body?.formats ?? []
             ),
             type: ProtocolTypes.didcommRevocationNotification.rawValue,
             attachments: offer.attachments,

@@ -30,7 +30,7 @@ public extension DIDCommAgent {
         )
         let attachment: AttachmentDescriptor
         switch type {
-        case .jwt:
+        case .jwt, .sdjwt:
             let data = try AttachmentBase64(base64: rqstStr.tryToData().base64URLEncoded())
             attachment = AttachmentDescriptor(
                 mediaType: "application/json",
@@ -152,7 +152,8 @@ public extension DIDCommAgent {
             options: [
                 .linkSecret(id: "", secret: linkSecretString),
                 .credentialDefinitionDownloader(downloader: downloader),
-                .schemaDownloader(downloader: downloader)
+                .schemaDownloader(downloader: downloader),
+                message.thid.map { .thid($0) } ?? .thid(message.id)
             ]
         )
 
@@ -180,20 +181,6 @@ public extension DIDCommAgent {
             .first()
             .await()
 
-        guard let storedPrivateKey = didInfo?.privateKeys.first else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
-
-        let privateKey = try await apollo.restorePrivateKey(storedPrivateKey)
-
-        guard
-            let exporting = privateKey.exporting,
-            let linkSecret = try await pluto.getLinkSecret().first().await()
-        else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
-
-        let restored = try await self.apollo.restoreKey(linkSecret)
-        guard
-            let linkSecretString = String(data: restored.raw, encoding: .utf8)
-        else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
-
         let downloader = DownloadDataWithResolver(castor: castor)
         guard
             let attachment = offer.attachments.first,
@@ -201,6 +188,20 @@ public extension DIDCommAgent {
         else {
             throw PolluxError.unsupportedIssuedMessage
         }
+
+        guard let storedPrivateKey = didInfo?.privateKeys else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
+
+        let privateKeys = try await storedPrivateKey.asyncMap { try await apollo.restorePrivateKey($0) }
+        let exporting = privateKeys.compactMap(\.exporting)
+
+        guard
+            let linkSecret = try await pluto.getLinkSecret().first().await()
+        else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
+
+        let restored = try await self.apollo.restoreKey(linkSecret)
+        guard
+            let linkSecretString = String(data: restored.raw, encoding: .utf8)
+        else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
 
         let jsonData: Data
         switch attachment.data {
@@ -218,11 +219,12 @@ public extension DIDCommAgent {
             type: offerFormat,
             offerPayload: jsonData,
             options: [
-                .exportableKey(exporting),
+                .exportableKeys(exporting),
                 .subjectDID(did),
                 .linkSecret(id: did.string, secret: linkSecretString),
                 .credentialDefinitionDownloader(downloader: downloader),
-                .schemaDownloader(downloader: downloader)
+                .schemaDownloader(downloader: downloader),
+                offer.thid.map { .thid($0) } ?? .thid(offer.id)
             ]
         )
 
@@ -265,8 +267,8 @@ public extension DIDCommAgent {
 
         let requestCredential = RequestCredential3_0(
             body: .init(
-                goalCode: offer.body.goalCode,
-                comment: offer.body.comment
+                goalCode: offer.body?.goalCode,
+                comment: offer.body?.comment
             ),
             type: type.rawValue,
             attachments: [.init(
