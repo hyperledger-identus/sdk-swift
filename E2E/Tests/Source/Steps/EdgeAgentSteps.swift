@@ -213,7 +213,7 @@ class EdgeAgentSteps: Steps {
         
         try await EdgeAgentWorkflow.initiatePresentationRequest(
             edgeAgent: verifierAgent,
-            credentialType: CredentialType.jwt,
+            credentialType: CredentialType.sdjwt,
             toDid: holderDid,
             claims: claims
         )
