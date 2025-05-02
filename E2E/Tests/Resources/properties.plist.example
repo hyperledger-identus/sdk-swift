@@ -8,10 +8,14 @@
 	<string></string>
 	<key>APIKEY</key>
 	<string></string>
-	<key>PUBLISHED_DID</key>
+	<key>PUBLISHED_SECP256K1_DID</key>
 	<string></string>
-	<key>JWT_SCHEMA_GUID</key>
+	<key>PUBLISHED_ED25519_DID</key>
 	<string></string>
+    <key>JWT_SCHEMA_GUID</key>
+    <string></string>
+    <key>SDJWT_SCHEMA_GUID</key>
+    <string></string>
 	<key>ANONCRED_DEFINITION_GUID</key>
 	<string></string>
 </dict>
