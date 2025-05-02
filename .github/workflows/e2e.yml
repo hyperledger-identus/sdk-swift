@@ -5,7 +5,7 @@ on:
     branches:
       - "main"
     tags:
-      - "v*"
+      - "*"
 
 jobs:
   integrate-revision:
@@ -23,7 +23,7 @@ jobs:
           client-payload: '{"component": "sdk-swift", "release": false, "version": "${{ github.sha }}" }'
 
   integrate-release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/')
     name: Integrate release
     runs-on: ubuntu-latest
 
