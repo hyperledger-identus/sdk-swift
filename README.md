@@ -1,4 +1,4 @@
-[![Coverage Status](https://coveralls.io/repos/github/input-output-hk/atala-prism-wallet-sdk-swift/badge.svg?branch=main)](https://coveralls.io/github/input-output-hk/atala-prism-wallet-sdk-swift?branch=main)
+[![Coverage Status](https://coveralls.io/repos/github/hyperledger/identus-edge-agent-sdk-swift/badge.svg?branch=main)](https://coveralls.io/github/hyperledger/identus-edge-agent-sdk-swift?branch=main)
 
 # Welcome to Identus Swift SDK
 
