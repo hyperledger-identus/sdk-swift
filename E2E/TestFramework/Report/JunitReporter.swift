@@ -54,7 +54,7 @@ public class JunitReporter: Reporter {
         currentScenario = XMLElement(name: "testcase")
         
         let id = XMLNode.attribute(withName: "id", stringValue: scenario.id) as! XMLNode
-        let name = XMLNode.attribute(withName: "name", stringValue: scenario.title) as! XMLNode
+        let name = XMLNode.attribute(withName: "name", stringValue: scenario.name) as! XMLNode
         
         currentScenario.addAttribute(id)
         currentScenario.addAttribute(name)

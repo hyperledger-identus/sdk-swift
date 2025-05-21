@@ -26,7 +26,7 @@ struct StepRegistry {
         }
         
         if (matchedStep == nil) {
-            throw TestConfiguration.Failure.StepNotFound(step: action)
+            throw StepError.notFound(action)
         }
         
         let runnable = runnableSteps[matchedStep!]!

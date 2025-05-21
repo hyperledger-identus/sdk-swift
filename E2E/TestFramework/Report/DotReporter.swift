@@ -39,11 +39,11 @@ public class DotReporter: Reporter {
         print("Executed", featuresOutcome.count, "features")
         for featureOutcome in featuresOutcome {
             print("  ", "Feature:", featureOutcome.feature.title())
-            for scenarioOutcome in featureOutcome.scenarios {
+            for scenarioOutcome in featureOutcome.scenarioOutcomes {
                 print(
                     "    ",
                     scenarioOutcome.failedStep != nil ? "(fail)" : "(pass)",
-                    scenarioOutcome.scenario.title
+                    scenarioOutcome.scenario.name
                 )
                 if (scenarioOutcome.failedStep != nil) {
                     let failedStep = scenarioOutcome.failedStep!

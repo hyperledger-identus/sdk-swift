@@ -1,10 +1,10 @@
 import Foundation
 
 public protocol ITestConfiguration {
-    static var shared: () -> ITestConfiguration {get}
-    static func createInstance() -> ITestConfiguration
-
-    func run(_ feature: Feature, _ currentScenario: Scenario) async throws
+    static var shared: () -> TestConfiguration {get}
+    static func createInstance() -> TestConfiguration
+    
+    func run(_ feature: Feature, _ currentScenario: Scenario?) async throws
     
     /// setup
     func setUp() async throws

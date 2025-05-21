@@ -26,11 +26,11 @@ public class HtmlReporter: Reporter {
         currentId = currentFeature!.id + currentScenario!.id + step.id
     }
     
-    public func action(_ action: ActionOutcome) async throws {
+    public func action(_ actionOutcome: ActionOutcome) async throws {
         if (actions[currentId!] == nil) {
             actions[currentId!] = []
         }
-        actions[currentId!]!.append(action)
+        actions[currentId!]!.append(actionOutcome)
     }
     
     public func afterStep(_ stepOutcome: StepOutcome) async throws {
@@ -52,11 +52,12 @@ public class HtmlReporter: Reporter {
             featureReport.name = featureOutcome.feature.title()
             htmlReport.data.append(featureReport)
             
-            for scenarioOutcome in featureOutcome.scenarios {
+            for scenarioOutcome in featureOutcome.scenarioOutcomes {
                 let scenarioReport = ScenarioReport()
-                scenarioReport.name = scenarioOutcome.scenario.title
+                scenarioReport.name = scenarioOutcome.scenario.name
                 featureReport.scenarios.append(scenarioReport)
-                
+                scenarioReport.status = scenarioOutcome.status.rawValue
+
                 for stepOutcome in scenarioOutcome.steps {
                     let stepReport = StepReport()
                     stepReport.name = stepOutcome.step.action
@@ -67,8 +68,7 @@ public class HtmlReporter: Reporter {
                         for actionOutcome in stepActions {
                             let actionReport = ActionReport()
                             actionReport.action = actionOutcome.action
-                            actionReport.passed = actionOutcome.error == nil
-                            actionReport.executed = actionOutcome.executed
+                            actionReport.status = actionOutcome.status.rawValue
                             stepReport.actions.append(actionReport)
                             if(actionOutcome.error != nil) {
                                 break
@@ -76,7 +76,6 @@ public class HtmlReporter: Reporter {
                         }
                     }
                     if (stepOutcome.error != nil) {
-                        scenarioReport.passed = false
                         stepReport.passed = false
                         stepReport.error = String(describing: scenarioOutcome.failedStep!.error!)
                         break
@@ -114,7 +113,7 @@ private class FeatureReport: Codable {
 
 private class ScenarioReport: Codable {
     var name: String = ""
-    var passed: Bool = true
+    var status: String = ""
     var steps: [StepReport] = []
 }
 
@@ -127,6 +126,5 @@ private class StepReport: Codable {
 
 private class ActionReport: Codable {
     var action: String = ""
-    var passed: Bool = true
-    var executed: Bool = false
+    var status: String = ""
 }

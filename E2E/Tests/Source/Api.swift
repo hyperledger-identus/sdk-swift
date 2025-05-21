@@ -1,4 +1,5 @@
 import Foundation
+import TestFramework
 
 class Api {
     static func get(from url: URL) async throws -> [String : Any] {
@@ -16,6 +17,10 @@ class Api {
     }
 }
 
-enum ApiError: Error {
-    case failure(message: String)
+class ApiError {
+    final class failure: BaseError {
+        init(message: String, file: StaticString = #file, line: UInt = #line) {
+            super.init(message: message, error: "Failure using API", file: file, line: line)
+        }
+    }
 }

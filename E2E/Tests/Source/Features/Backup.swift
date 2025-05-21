@@ -21,7 +21,7 @@ final class BackupFeature: Feature {
             .given("Edge Agent has created a backup")
             .then("a new Restored Agent cannot be restored from Edge Agent with wrong seed")
     }
-    
+
     func testRestoredBackupShouldBeFunctional() async throws {
         currentScenario = Scenario("Restored backup should be functional")
             .given("Cloud Agent is connected to Edge Agent")

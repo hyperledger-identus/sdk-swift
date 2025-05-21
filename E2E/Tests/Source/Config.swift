@@ -8,7 +8,7 @@ class Config: TestConfiguration {
     
     static var publishedSecp256k1Did: String = ""
     static var publishedEd25519Did: String = ""
-
+    
     static var jwtSchemaGuid: String = ""
     static var sdJwtSchemaGuid: String = ""
     static var anoncredDefinitionGuid: String = ""
@@ -19,7 +19,7 @@ class Config: TestConfiguration {
         return api
     }()
     
-    override class func createInstance() -> ITestConfiguration {
+    override class func createInstance() -> TestConfiguration {
         return Config(bundlePath: Bundle.module.bundlePath)
     }
     
@@ -31,7 +31,7 @@ class Config: TestConfiguration {
     }
     
     override func createReporters() async throws -> [Reporter] {
-        return [ConsoleReporter(), HtmlReporter(), JunitReporter()]
+        return [ConsoleReporter(), HtmlReporter(), JunitReporter(), AllureReporter()]
     }
     
     override func createActors() async throws -> [Actor]  {
@@ -40,7 +40,7 @@ class Config: TestConfiguration {
         let verifierEdgeAgent = Actor("Verifier Edge Agent").whoCanUse(DidcommAgentAbility())
         return [cloudAgent, edgeAgent, verifierEdgeAgent]
     }
-
+    
     override func setUp() async throws {
         Config.mediatorOobUrl = environment["MEDIATOR_OOB_URL"] ?? ""
         Config.agentUrl = environment["PRISM_AGENT_URL"] ?? ""
@@ -50,7 +50,7 @@ class Config: TestConfiguration {
         Config.sdJwtSchemaGuid = environment["SDJWT_SCHEMA_GUID"] ?? ""
         Config.anoncredDefinitionGuid = environment["ANONCRED_DEFINITION_GUID"] ?? ""
         Config.apiKey = environment["APIKEY"] ?? ""
-
+        
         let isDebug = ProcessInfo.processInfo.environment["DEBUG"]
         if (isDebug != nil) {
             print("=================== PARAMETERS ===================")
@@ -64,7 +64,7 @@ class Config: TestConfiguration {
             print("APIKEY", Config.apiKey)
             fflush(stdout)
         }
-
+        
         // should be initialized after the configuration variables
         let openEnterpriseApi = CloudAgentAPI()
         try openEnterpriseApi.createClient()
@@ -132,7 +132,7 @@ class Config: TestConfiguration {
     private func checkSchema(guid: String) async throws -> Bool {
         return try await api.isSchemaGuidPresent(guid)
     }
-
+    
     private func createSchema(did: String) async throws -> String {
         let schema = try await api.createSchema(did: did)
         return schema.guid
@@ -167,6 +167,10 @@ class Config: TestConfiguration {
     }
 }
 
-enum ConfigError: Error {
-    case PublishedDIDNotFound
+class ConfigError {
+    final class publishedDIDNotFound: BaseError {
+        init(file: StaticString = #file, line: UInt = #line) {
+            super.init(message: "Error while getting published DID", error: "Configuration error", file: file, line: line)
+        }
+    }
 }

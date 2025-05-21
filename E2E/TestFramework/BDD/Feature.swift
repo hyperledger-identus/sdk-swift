@@ -5,7 +5,7 @@ import SwiftHamcrest
 open class Feature: XCTestCase {
     let id: String = UUID().uuidString
     open var currentScenario: Scenario? = nil
-    
+
     open func title() -> String {
         fatalError("Set feature title")
     }
@@ -16,9 +16,23 @@ open class Feature: XCTestCase {
     
     /// our lifecycle starts after xctest is ending
     public override func tearDown() async throws {
-        try await run()
+        var errorFromRun: Error?
+        do {
+            try await run()
+        } catch {
+            errorFromRun = error
+        }
         self.currentScenario = nil
-        try await super.tearDown()
+        var superTeardownError: Error?
+        do {
+            try await super.tearDown()
+        } catch {
+            superTeardownError = error
+        }
+
+        if let errorToThrow = errorFromRun ?? superTeardownError {
+            throw errorToThrow
+        }
     }
 
     public override class func tearDown() {
@@ -34,30 +48,36 @@ open class Feature: XCTestCase {
     }
 
     func run() async throws {
-        // check if we have the scenario
-        if (currentScenario == nil) {
-            throw XCTSkip("""
-            To run the feature you have to setup the scenario for each test case.
-            Usage:
-            func testMyScenario() async throws {
-                scenario = Scenario("description")
-                    .given // ...
+        let currentTestMethodName = self.name
+        if currentScenario == nil {
+            let rawMethodName = currentTestMethodName.split(separator: " ").last?.dropLast() ?? "yourTestMethod"
+            
+            let errorMessage = """
+            ‼️ SCENARIO NOT DEFINED in test method: \(currentTestMethodName)
+            Each 'func test...()' method within a 'Feature' class must assign a 'Scenario' to 'self.currentScenario'.
+
+            Example:
+            func \(rawMethodName)() async throws {
+                currentScenario = Scenario("A brief scenario description", file: #file, line: #line)
+                    .given("some precondition")
+                    .when("some action")
+                    .then("some expected outcome")
             }
-            """)
+            """
+            throw ConfigurationError.missingScenario(errorMessage)
         }
-        
-        if (currentScenario!.disabled) {
-            throw XCTSkip("Scenario [\(currentScenario!.title)] is disabled")
+        if currentScenario!.disabled {
+            throw XCTSkip("Scenario '\(currentScenario!.name)' in test method \(currentTestMethodName) is disabled.")
         }
-        
         try await TestConfiguration.setUpInstance()
         
-        if (currentScenario! is ParameterizedScenario) {
-            let parameterizedScenario = currentScenario! as! ParameterizedScenario
-            for scenario in parameterizedScenario.build() {
-                try await TestConfiguration.shared().run(self, scenario)
+        if let parameterizedScenario = currentScenario as? ParameterizedScenario {
+            for scenarioInstance in parameterizedScenario.build() {
+                scenarioInstance.feature = self
+                try await TestConfiguration.shared().run(self, scenarioInstance)
             }
         } else {
+            currentScenario?.feature = self
             try await TestConfiguration.shared().run(self, currentScenario!)
         }
     }
