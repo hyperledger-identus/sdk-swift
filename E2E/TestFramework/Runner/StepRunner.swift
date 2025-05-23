@@ -25,8 +25,8 @@ class StepRunner {
                     String(describing: mirror.subjectType)
                 }
                 
-                throw TestConfiguration.Failure.StepParameterDoesNotMatch(
-                    step: step.definition,
+                throw StepError.parameterTypeDoesNotMatch(
+                    step.definition,
                     expected: String(describing: T.self),
                     actual: String(describing: actualType)
                 )

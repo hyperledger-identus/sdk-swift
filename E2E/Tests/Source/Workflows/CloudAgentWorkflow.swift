@@ -11,10 +11,10 @@ class CloudAgentWorkflow {
     }
     
     static func hasAConnectionInvitation(cloudAgent: Actor, label: String?, goalCode: String?, goal: String?) async throws {
-        let connection = try await cloudAgent.using(
-            ability: CloudAgentAPI.self,
-            action: "create a connection"
-        ).createConnection(label: label, goalCode: goalCode, goal: goal)
+        let connection = try await cloudAgent.perform(
+            withAbility: CloudAgentAPI.self,
+            description: "create a connection"
+        ) { try await $0.createConnection(label: label, goalCode: goalCode, goal: goal) }
         try await cloudAgent.remember(key: "invitation", value: connection.invitation.invitationUrl)
         try await cloudAgent.remember(key: "connectionId", value: connection.connectionId)
     }
@@ -29,72 +29,70 @@ class CloudAgentWorkflow {
         try await cloudAgent.waitUsingAbility(
             ability: CloudAgentAPI.self,
             action: "connection state to be \(expectedState.rawValue)"
-        ) { ability in
-            return try await ability.getConnection(connectionId).state == expectedState
-        }
+        ) { try await $0.getConnection(connectionId).state == expectedState }
     }
     
     static func offersACredential(cloudAgent: Actor) async throws {
         let connectionId: String = try await cloudAgent.recall(key: "connectionId")
-        let credentialOfferRecord = try await cloudAgent.using(
-            ability: CloudAgentAPI.self,
-            action: "offers a credential to \(connectionId)"
-        ).offerCredential(connectionId)
+        let credentialOfferRecord = try await cloudAgent.perform(
+            withAbility: CloudAgentAPI.self,
+            description: "offers a credential to \(connectionId)"
+        ) { try await $0.offerCredential(connectionId) }
         try await cloudAgent.remember(key: "recordId", value: credentialOfferRecord.recordId)
     }
     
     static func offersAnonymousCredential(cloudAgent: Actor) async throws {
         let connectionId: String = try await cloudAgent.recall(key: "connectionId")
-        let credentialOfferRecord = try await cloudAgent.using(
-            ability: CloudAgentAPI.self,
-            action: "offers an anonymous credential to \(connectionId)"
-        ).offerAnonymousCredential(connectionId)
+        let credentialOfferRecord = try await cloudAgent.perform(
+            withAbility: CloudAgentAPI.self,
+            description: "offers an anonymous credential to \(connectionId)"
+        ) { try await $0.offerAnonymousCredential(connectionId) }
         try await cloudAgent.remember(key: "recordId", value: credentialOfferRecord.recordId)
     }
 
     static func offersSdJwtCredentials(cloudAgent: Actor) async throws {
         let connectionId: String = try await cloudAgent.recall(key: "connectionId")
-        let credentialOfferRecord = try await cloudAgent.using(
-            ability: CloudAgentAPI.self,
-            action: "offers a sd+jwt credential to \(connectionId)"
-        ).offerSdJwtCredential(connectionId)
+        let credentialOfferRecord = try await cloudAgent.perform(
+            withAbility: CloudAgentAPI.self,
+            description: "offers a sd+jwt credential to \(connectionId)"
+        ) { try await $0.offerSdJwtCredential(connectionId) }
         try await cloudAgent.remember(key: "recordId", value: credentialOfferRecord.recordId)
     }
     
     static func asksForJwtPresentProof(cloudAgent: Actor) async throws {
         let connectionId: String = try await cloudAgent.recall(key: "connectionId")
-        let presentation = try await cloudAgent.using(
-            ability: CloudAgentAPI.self,
-            action: "ask a presentation proof to \(connectionId)"
-        ).requestPresentProof(connectionId)
+        let presentation = try await cloudAgent.perform(
+            withAbility: CloudAgentAPI.self,
+            description: "ask a presentation proof to \(connectionId)"
+        ) { try await $0.requestPresentProof(connectionId) }
         try await cloudAgent.remember(key: "presentationId", value: presentation.presentationId)
     }
     
     static func askForSdJwtPresentProof(cloudAgent: Actor) async throws {
         let connectionId: String = try await cloudAgent.recall(key: "connectionId")
-        let presentation = try await cloudAgent.using(
-            ability: CloudAgentAPI.self,
-            action: "asks a sd+jwt presentation proof to \(connectionId)"
-        ).requestSdJwtPresentProof(connectionId)
+        let presentation = try await cloudAgent.perform(
+            withAbility: CloudAgentAPI.self,
+            description: "asks a sd+jwt presentation proof to \(connectionId)"
+        ) { try await $0.requestSdJwtPresentProof(connectionId) }
         try await cloudAgent.remember(key: "presentationId", value: presentation.presentationId)
     }
     
     static func asksForAnonymousPresentProof(cloudAgent: Actor) async throws {
         let connectionId: String = try await cloudAgent.recall(key: "connectionId")
-        let presentation = try await cloudAgent.using(
-            ability: CloudAgentAPI.self,
-            action: "ask an anonymous presentation proof to \(connectionId)"
-        ).requestAnonymousPresentProof(connectionId)
+        let presentation = try await cloudAgent.perform(
+            withAbility: CloudAgentAPI.self,
+            description: "ask an anonymous presentation proof to \(connectionId)"
+        ) { try await $0.requestAnonymousPresentProof(connectionId) }
         try await cloudAgent.remember(key: "presentationId", value: presentation.presentationId)
     }
     
 
     static func asksForAnonymousPresentProofWithUnexpectedAttributes(cloudAgent: Actor) async throws {
         let connectionId: String = try await cloudAgent.recall(key: "connectionId")
-        let presentation = try await cloudAgent.using(
-            ability: CloudAgentAPI.self,
-            action: "ask an anonymous presentation proof with unexpected attributes to \(connectionId)"
-        ).requestAnonymousPresentProofWithUnexpectedAttributes(connectionId)
+        let presentation = try await cloudAgent.perform(
+            withAbility: CloudAgentAPI.self,
+            description: "ask an anonymous presentation proof with unexpected attributes to \(connectionId)"
+        ) { try await $0.requestAnonymousPresentProofWithUnexpectedAttributes(connectionId) }
         try await cloudAgent.remember(key: "presentationId", value: presentation.presentationId)
     }
     
@@ -125,9 +123,10 @@ class CloudAgentWorkflow {
         
         for _ in 0..<numberOfRevokedCredentials {
             let recordId = recordIdList.removeFirst()
-            let httpStatus = try await cloudAgent
-                .using(ability: CloudAgentAPI.self, action: "revokes \(recordId)")
-                .revokeCredential(recordId)
+            let httpStatus = try await cloudAgent.perform(
+                withAbility: CloudAgentAPI.self,
+                description: "revokes \(recordId)"
+            ) { try await $0.revokeCredential(recordId) }
             assertThat(httpStatus, equalTo(200))
             revokedRecordIdList.append(recordId)
         }

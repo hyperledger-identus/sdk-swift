@@ -10,7 +10,7 @@ final class ConnectionFeature: Feature {
     }
     
     func testConnection() async throws {
-        let variants: [[String: String]] = [
+        let table: [[String: String]] = [
             ["label": "alice", "goalCode": "automation", "goal": "automation description"],
             ["label": ""     , "goalCode": "",           "goal": ""                      ],
             ["label": "alice", "goalCode": "null",       "goal": "null"                  ],
@@ -20,7 +20,7 @@ final class ConnectionFeature: Feature {
         ]
         
         currentScenario = ParameterizedScenario("Create connection: [label=<label>; goalCode=<goalCode>; goal=<goal>]")
-            .parameters(variants)
+            .table(table)
             .given("Cloud Agent has a connection invitation with '<label>', '<goalCode>' and '<goal>' parameters")
             .given("Cloud Agent shares invitation to Edge Agent")
             .when("Edge Agent connects through the invite")

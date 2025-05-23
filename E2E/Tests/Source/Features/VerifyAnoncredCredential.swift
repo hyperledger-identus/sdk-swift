@@ -10,7 +10,7 @@
      }
     
      func testSdkAnoncredVerification() async throws {
-         currentScenario = Scenario("SDKs Anoncreds Verification")
+         currentScenario = Scenario("Should succeed")
              .given("Cloud Agent is connected to Edge Agent")
              .and("Edge Agent has '1' anonymous credentials issued by Cloud Agent")
              .when("Verifier Edge Agent will request Edge Agent to verify the anonymous credential")
@@ -19,7 +19,7 @@
      }
 
      func testSdkAnoncredVerificationUnsatisfiedPredicate() async throws {
-         currentScenario = Scenario("SDKs Anoncreds Verification")
+         currentScenario = Scenario("Should fail for unsatisfied predicate")
              .given("Cloud Agent is connected to Edge Agent")
              .and("Edge Agent has '1' anonymous credentials issued by Cloud Agent")
              .when("Verifier Edge Agent will request Edge Agent to verify the anonymous credential for age greater than actual")

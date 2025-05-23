@@ -11,7 +11,7 @@ public class DebugReporter: Reporter {
     }
     
     public func beforeScenario(_ scenario: Scenario) async throws {
-        if debug { print("Before Scenario:", scenario.title) }
+        if debug { print("Before Scenario:", scenario.name) }
     }
     
     public func beforeStep(_ step: ConcreteStep) async throws {
@@ -31,7 +31,7 @@ public class DebugReporter: Reporter {
     }
     
     public func afterScenario(_ scenarioOutcome: ScenarioOutcome) async throws {
-        print("After Scenario", scenarioOutcome.scenario.title)
+        print("After Scenario", scenarioOutcome.scenario.name)
     }
     
     public func afterFeature(_ featureOutcome: FeatureOutcome) async throws {

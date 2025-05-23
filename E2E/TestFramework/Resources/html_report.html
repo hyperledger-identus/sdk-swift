@@ -61,6 +61,22 @@
         .scenario-failed h4 {
             color: #f44336
         }
+        
+        .scenario-skipped {
+            border: 1px solid grey;
+        }
+
+        .scenario-skipped h4 {
+            color: grey
+        }
+        
+        .scenario-broken {
+            border: 1px solid purple;
+        }
+
+        .scenario-broken h4 {
+            color: purple
+        }
 
         .steps-block {
             padding-right: 20px;
@@ -90,6 +106,10 @@
 
         .action-pending {
             color: grey
+        }
+        
+        .action-broken {
+            color: purple
         }
 
         .test-container {
@@ -202,7 +222,7 @@
                         Object.keys(feature.scenarios).forEach((key) => {
                             let scenario = feature.scenarios[key]
                             scenario.passed ? passedScenarios++ : failedScenarios++
-                            var scenarioClass = scenario.passed ? 'scenario-passed' : 'scenario-failed';
+                            var scenarioClass = 'scenario-' + scenario.status;
 
                             reportHTML += `<div onclick="toggleScenario(this, event)" class="${scenarioClass} scenario expandable">`
                                 reportHTML += `<h4>${scenario.name}</h4>`;
@@ -216,7 +236,7 @@
 
                                     reportHTML += `<div class="${stepClass}"><i class="fas ${icon}"></i>${step.name}`;
                                         step.actions.forEach(function (action, index, arr) {
-                                            let actionClass = action.executed ? (action.passed ? "action-passed": "action-failed") : "action-pending";
+                                            let actionClass = "action-" + action.status;
                                             reportHTML += `<div class="action ${actionClass}">${action.action}</div>`;
                                         });
                                         if (error) {

@@ -1,5 +1,6 @@
 import Foundation
 import XCTest
+import SwiftHamcrest
 
 public class Actor {
     public let uuid = UUID().uuidString
@@ -7,7 +8,6 @@ public class Actor {
     private var context: [String: Any] = [:]
     private var abilities: [String : any Ability] = [:]
     private var isInitialized: Bool = false
-    
     public init(_ name: String) {
         self.name = name
     }
@@ -28,7 +28,7 @@ public class Actor {
     
     private func getAbility<T: Ability>(_ ability: T.Type) async throws -> T {
         if !abilities.contains(where: { $0.key == String(describing: ability.self) }) {
-            throw ActorError.CantUseAbility("Actor [\(name)] don't have the ability to use [\(ability.self)]")
+            throw ActorError.cantUseAbility("Actor [\(name)] don't have the ability to use [\(ability.self)]")
         }
         
         let ability = self.abilities[String(describing: ability.self)]! as! T
@@ -38,76 +38,63 @@ public class Actor {
         return ability
     }
     
-    public func using<T : Ability>(ability: T.Type,
-                                   action: String // = "executes an action"
+    private func getInstance() -> TestConfiguration {
+        return TestConfiguration.shared()
+    }
+    
+    private func using<T : Ability>(
+        ability: T.Type,
+        action: String,
+        file: StaticString = #file,
+        line: UInt = #line
     ) async throws -> T {
         let ability = try await getAbility(ability)
-        return try await execute("\(name) \(action) using \(ability.abilityName)") {
+        return try await getInstance().executeAction("\(name) \(action) using \(ability.abilityName)", file, line) {
             return ability
         }
     }
     
-    public func waitUsingAbility<T: Ability>(ability: T.Type,
-                                             action: String, // = "an expectation is met",
-                                             callback: (_ ability: T) async throws -> Bool
+    public func waitUsingAbility<T: Ability>(
+        ability: T.Type,
+        action: String,
+        callback: (_ ability: T) async throws -> Bool,
+        file: StaticString = #file,
+        line: UInt = #line
     ) async throws {
         let ability = try await getAbility(ability)
-        return try await execute("\(name) waits until \(action) using \(ability.abilityName)") {
+        return try await getInstance().executeAction("\(name) waits until \(action) using \(ability.abilityName)", file, line) {
             return try await Wait.until {
                 try await callback(ability)
             }
         }
     }
     
-    public func remember(key: String, value: Any) async throws {
-        return try await execute("\(name) remembers [\(key)]") {
+    public func remember(key: String, value: Any, file: StaticString = #file, line: UInt = #line) async throws {
+        return try await getInstance().executeAction("\(name) remembers [\(key)]", file, line) {
             context[key] = value
         }
     }
     
-    public func recall<T>(key: String) async throws -> T {
-        return try await execute("\(name) recalls [\(key)]") {
+    public func recall<T>(key: String, file: StaticString = #file, line: UInt = #line) async throws -> T {
+        return try await getInstance().executeAction("\(name) recalls [\(key)]",file,line) {
             if (context[key] == nil) {
-                throw ActorError.CantFindNote("\(name) don't have any note named [\(key)]")
+                throw ActorError.cantFindNote("\(name) don't have any note named [\(key)]")
             }
             return context[key] as! T
         }
     }
     
-    private func execute<T>(_ message: String, _ closure: () async throws -> T) async throws -> T {
-        let actionOutcome = ActionOutcome()
-        actionOutcome.action = message
-        do {
-            let result = try await closure()
-            actionOutcome.executed = true
-            try await TestConfiguration.shared().report(.ACTION, actionOutcome)
-            return result
-        } catch {
-            actionOutcome.error = error
-            try await TestConfiguration.shared().report(.ACTION, actionOutcome)
-            throw error
+    public func perform<SelectedAbility: Ability, OperationResult>(
+        withAbility abilityType: SelectedAbility.Type,
+        description: String,
+        operation: (_ ability: SelectedAbility) async throws -> OperationResult,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) async throws -> OperationResult {
+        let ability = try await getAbility(abilityType)
+        let fullActionMessage = "\(name) \(description) using \(ability.abilityName)"
+        return try await getInstance().executeAction(fullActionMessage, file, line) {
+            try await operation(ability)
         }
     }
-    
-    private func execute<T>(_ message: String, _ closure: () throws -> T) async throws -> T {
-        let actionOutcome = ActionOutcome()
-        actionOutcome.action = message
-        do {
-            let result = try closure()
-            actionOutcome.executed = true
-            try await TestConfiguration.shared().report(.ACTION, actionOutcome)
-            return result
-        } catch {
-            actionOutcome.error = error
-            try await TestConfiguration.shared().report(.ACTION, actionOutcome)
-            throw error
-        }
-    }
-    
-    /// Here we could add attempsTo where actor can run actions, wait, etc
-}
-
-enum ActorError : Error {
-    case CantUseAbility(_ message: String)
-    case CantFindNote(_ message: String)
 }
