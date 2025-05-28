@@ -10,7 +10,7 @@ struct CreatePrismDIDOperation {
 
     func compute() throws -> DID {
         var operation = Io_Iohk_Atala_Prism_Protos_AtalaOperation()
-        guard keys.count(where: { $0.0 == .master} ) == 1 else {
+        guard keys.filter({ $0.0 == KeyPurpose.master }).count == 1 else {
             throw CastorError.requiresOneAndJustOneMasterKey
         }
         let groupByPurpose = Dictionary(grouping: keys, by: { $0.0 })
