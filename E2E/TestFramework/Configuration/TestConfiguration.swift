@@ -329,7 +329,7 @@ open class TestConfiguration: ITestConfiguration {
         let instanceType = (subclasses[0] as! ITestConfiguration.Type)
         
         // force as own instance
-        let instance = instanceType.createInstance() as! TestConfiguration
+        let instance = instanceType.createInstance()
         instance.suiteOutcome.start()
         self.instance = instance
         

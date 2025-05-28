@@ -130,14 +130,7 @@ public class AllureReporter: Reporter {
 
     public required init() {
         self.fileManager = FileManager.default
-
-        let targetDir: URL
-        if let configProvider = TestConfiguration.shared() as? TestConfiguration {
-            targetDir = configProvider.targetDirectory()
-        } else {
-            print("AllureReporter: CRITICAL - Could not determine targetDirectory from TestConfiguration.shared(). Defaulting to current directory for allure-results. THIS IS LIKELY WRONG.")
-            targetDir = URL(fileURLWithPath: fileManager.currentDirectoryPath)
-        }
+        let targetDir: URL = TestConfiguration.shared().targetDirectory()
         self.allureResultsPath = targetDir.appendingPathComponent("allure-results")
         self.jsonEncoder = JSONEncoder()
         self.jsonEncoder.outputFormatting = .prettyPrinted
@@ -243,7 +236,7 @@ public class AllureReporter: Reporter {
         let containerUUID = UUID().uuidString
         
         self.currentAllureFeatureContainer = AllureTestResultContainer(
-            uuid: containerUUID,
+            uuid: containerUUID
         )
     }
 
@@ -299,7 +292,7 @@ public class AllureReporter: Reporter {
 
         let allureStep = AllureStepResult(
             name: "\(step.context) \(step.action)",
-            stage: .running,
+            stage: .running
         )
         
         if var parentStep = allureStepStack.last {
