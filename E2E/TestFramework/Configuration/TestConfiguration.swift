@@ -174,6 +174,8 @@ open class TestConfiguration: ITestConfiguration {
                 break
             }
         }
+        
+        actionFailure = nil
         scenarioOutcome.end()
         return scenarioOutcome
         
