@@ -3,16 +3,17 @@ import XCTest
 
 public class Scenario {
     let id = UUID().uuidString
-    var title: String
+    var name: String
     var steps: [ConcreteStep] = []
-    var pass: Bool = false
-    var error: Error? = nil
     var disabled: Bool = false
-    
+    var feature: Feature?
+    var parameters: [String: String]?
+
     private var lastContext: String = ""
     
-    public init(_ title: String) {
-        self.title = title
+    public init(_ title: String, parameters: [String: String] = [:]) {
+        self.name = title
+        self.parameters = parameters
     }
     
     public func fail(file: StaticString?, line: UInt?, message: String) {

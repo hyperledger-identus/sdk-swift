@@ -128,25 +128,25 @@ class EdgeAgentSteps: Steps {
         let seed: Seed = try await oldAgent.recall(key: "seed")
         _ = newAgent.whoCanUse(DidcommAgentAbility(seed: seed))
         
-        let peerDids = try await newAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "gets peer dids"
-        ).didcommAgent.pluto.getAllPeerDIDs().first().await()
+        let peerDids = try await newAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "gets peer dids"
+        ) { try await $0.didcommAgent.pluto.getAllPeerDIDs().first().await() }
         
-        let prismDids = try await newAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "gets prism dids"
-        ).didcommAgent.pluto.getAllPrismDIDs().first().await()
+        let prismDids = try await newAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "gets prism dids"
+        ) { try await $0.didcommAgent.pluto.getAllPrismDIDs().first().await() }
         
-        let credentials = try await newAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "gets credentials"
-        ).didcommAgent.pluto.getAllCredentials().first().await()
+        let credentials = try await newAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "gets credentials"
+        ) { try await $0.didcommAgent.pluto.getAllCredentials().first().await() }
         
-        let didPairs = try await newAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "get key pairs"
-        ).didcommAgent.pluto.getAllDidPairs().first().await()
+        let didPairs = try await newAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "get key pairs"
+        ) { try await $0.didcommAgent.pluto.getAllDidPairs().first().await() }
         
         try await newAgent.remember(key: "currentPeerDids", value: peerDids.count)
         try await newAgent.remember(key: "currentPrismDids", value: prismDids.count)
@@ -213,7 +213,7 @@ class EdgeAgentSteps: Steps {
         
         try await EdgeAgentWorkflow.initiatePresentationRequest(
             edgeAgent: verifierAgent,
-            credentialType: CredentialType.jwt,
+            credentialType: CredentialType.sdjwt,
             toDid: holderDid,
             claims: claims
         )

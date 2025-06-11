@@ -2,10 +2,26 @@ import Foundation
 
 public class StepOutcome {
     let step: ConcreteStep
+    var status: TestStatus
     var error: Error?
-    
-    init(_ step: ConcreteStep, _ error: Error? = nil) {
+    public var startTime: Date?
+    public var endTime: Date?
+
+    init(_ step: ConcreteStep) {
         self.step = step
-        self.error = error
+        self.status = .passed
+    }
+    
+    func start() {
+        startTime = Date()
+    }
+    
+    func end() {
+        endTime = Date()
+    }
+    
+    public var duration: TimeInterval? {
+        guard let start = startTime, let end = endTime else { return nil }
+        return end.timeIntervalSince(start)
     }
 }

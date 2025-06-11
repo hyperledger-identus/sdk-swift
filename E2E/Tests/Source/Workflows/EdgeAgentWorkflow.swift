@@ -12,23 +12,21 @@ class EdgeAgentWorkflow {
         let invitation: String = try await edgeAgent.recall(key: "invitation")
         let url = URL(string: invitation)!
         
-        let oob = try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "parses an OOB invitation"
-        ).didcommAgent.parseOOBInvitation(url: url)
-        
-        try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "accepts an invitation"
-        ).didcommAgent.acceptDIDCommInvitation(invitation: oob)
+        try await edgeAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "parses an OOB invitation"
+        ) { sdk in
+            let oob = try sdk.didcommAgent.parseOOBInvitation(url: url)
+            try await sdk.didcommAgent.acceptDIDCommInvitation(invitation: oob)
+        }
     }
     
     static func waitToReceiveCredentialsOffer(edgeAgent: Actor, numberOfCredentials: Int) async throws {
         try await edgeAgent.waitUsingAbility(
             ability: DidcommAgentAbility.self,
             action: "credential offer count to be \(numberOfCredentials)"
-        ) { ability in
-            return ability.credentialOfferStack.count == numberOfCredentials
+        ) { sdk in
+            return sdk.credentialOfferStack.count == numberOfCredentials
         }
     }
     
@@ -78,276 +76,247 @@ class EdgeAgentWorkflow {
     }
     
     static func acceptsTheCredentialOffer(edgeAgent: Actor) async throws {
-        let message: Message = try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "gets the first credential offer"
-        ).credentialOfferStack.first!
-        
-        try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "removes it from list"
-        ).credentialOfferStack.removeFirst()
-        
-        let format = message.attachments[0].format
-        let did: DID
-        
-        switch(format) {
-        case "anoncreds/credential-offer@v1.0":
-            did = try await edgeAgent.using(
-                ability: DidcommAgentAbility.self,
-                action: "create a new prism DID"
-            ).didcommAgent.createNewPrismDID()
-            break
-        case "vc+sd-jwt":
-            let privateKey = try await edgeAgent.using(
-                ability: DidcommAgentAbility.self,
-                action: "create a private key"
-            ).didcommAgent.apollo.createPrivateKey(parameters: [
-                KeyProperties.type.rawValue: "EC",
-                KeyProperties.curve.rawValue: KnownKeyCurves.ed25519.rawValue
-            ])
+        try await edgeAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "accepts the credential offer"
+        ) { sdk in
+            let message = sdk.credentialOfferStack.first!
+            _ = sdk.credentialOfferStack.removeFirst()
             
-            did = try await edgeAgent.using(
-                ability: DidcommAgentAbility.self,
-                action: "create a new prism DID"
-            ).didcommAgent.createNewPrismDID(
-                keys: [(KeyPurpose.authentication, privateKey)]
-            )
-            break
-        case "prism/jwt":
-            let seed = try await edgeAgent.using(
-                ability: DidcommAgentAbility.self,
-                action: "get seed"
-            ).didcommAgent.edgeAgent.seed
+            let format = message.attachments[0].format
+            let did: DID
             
-            let privateKey = try await edgeAgent.using(
-                ability: DidcommAgentAbility.self,
-                action: "create a private key"
-            ).didcommAgent.apollo.createPrivateKey(parameters: [
-                KeyProperties.type.rawValue: "EC",
-                KeyProperties.curve.rawValue: KnownKeyCurves.secp256k1.rawValue,
-                KeyProperties.seed.rawValue: seed.value.base64EncodedString(),
-                KeyProperties.derivationPath.rawValue: DerivationPath().keyPathString()
-            ])
+            switch(format) {
+            case "anoncreds/credential-offer@v1.0":
+                did = try await sdk.didcommAgent.createNewPrismDID()
+                break
+            case "vc+sd-jwt":
+                let privateKey = try sdk.didcommAgent.apollo.createPrivateKey(parameters: [
+                    KeyProperties.type.rawValue: "EC",
+                    KeyProperties.curve.rawValue: KnownKeyCurves.ed25519.rawValue
+                ])
+                
+                did = try await sdk.didcommAgent.createNewPrismDID(
+                    keys: [(KeyPurpose.authentication, privateKey)]
+                )
+                break
+            case "prism/jwt":
+                let seed = sdk.didcommAgent.edgeAgent.seed
+                let privateKey = try sdk.didcommAgent.apollo.createPrivateKey(parameters: [
+                    KeyProperties.type.rawValue: "EC",
+                    KeyProperties.curve.rawValue: KnownKeyCurves.secp256k1.rawValue,
+                    KeyProperties.seed.rawValue: seed.value.base64EncodedString(),
+                    KeyProperties.derivationPath.rawValue: DerivationPath().keyPathString()
+                ])
+                
+                did = try await sdk.didcommAgent.createNewPrismDID(
+                    keys: [(KeyPurpose.authentication, privateKey)]
+                )
+                break
+            default:
+                throw ValidationError.error(message: "Format \(format!) not supported")
+            }
             
-            did = try await edgeAgent.using(
-                ability: DidcommAgentAbility.self,
-                action: "create a new prism DID"
-            ).didcommAgent.createNewPrismDID(
-                keys: [(KeyPurpose.authentication, privateKey)]
-            )
-            break
-        default:
-            throw ValidationError.error(message: "Format \(format!) not supported")
-        }
-        
-        let acceptOfferMessage = try OfferCredential3_0(fromMessage: message)
-        
-        let requestCredential = try await edgeAgent
-            .using(
-                ability: DidcommAgentAbility.self,
-                action: "request a credential"
-            )
-            .didcommAgent
-            .prepareRequestCredentialWithIssuer(
+            let acceptOfferMessage = try OfferCredential3_0(fromMessage: message)
+            let requestCredential = try await sdk.didcommAgent.prepareRequestCredentialWithIssuer(
                 did: did,
                 offer: acceptOfferMessage
             )!.makeMessage()
+            _ = try await sdk.didcommAgent.sendMessage(message: requestCredential)
+        }
         
-        _ = try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "send a message"
-        ).didcommAgent.sendMessage(message: requestCredential)
     }
     
     static func waitToReceiveIssuedCredentials(edgeAgent: Actor, numberOfCredentials: Int) async throws {
         try await edgeAgent.waitUsingAbility(
             ability: DidcommAgentAbility.self,
             action: "wait for issued credentials to be \(numberOfCredentials)"
-        ) { ability in
-            return ability.issueCredentialStack.count == numberOfCredentials
+        ) { sdk in
+            return sdk.issueCredentialStack.count == numberOfCredentials
         }
     }
     
     static func processIssuedCredential(edgeAgent: Actor, recordId: String) async throws {
-        let message = try await edgeAgent
-            .using(ability: DidcommAgentAbility.self, action: "get the issued credential message")
-            .issueCredentialStack.removeFirst()
-        let issuedCredential = try IssueCredential3_0(fromMessage: message)
-        _ = try await edgeAgent
-            .using(ability: DidcommAgentAbility.self, action: "process the credential")
-            .didcommAgent.processIssuedCredentialMessage(message: issuedCredential)
-        try await edgeAgent.remember(key: recordId, value: message.id)
+        _ = try await edgeAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "process the issued credential"
+        ) { sdk in
+            let message = sdk.issueCredentialStack.removeFirst()
+            let issuedCredential = try IssueCredential3_0(fromMessage: message)
+            _ = try await sdk.didcommAgent.processIssuedCredentialMessage(message: issuedCredential)
+            try await edgeAgent.remember(key: recordId, value: message.id)
+        }
     }
     
     static func waitForProofRequest(edgeAgent: Actor) async throws {
         try await edgeAgent.waitUsingAbility(
             ability: DidcommAgentAbility.self,
             action: "wait for present proof request"
-        ) { ability in
-            return ability.proofOfRequestStack.count == 1
+        ) { sdk in
+            return sdk.proofOfRequestStack.count == 1
         }
     }
     
     static func presentProof(edgeAgent: Actor) async throws {
-        let credentials = try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "get a verifiable credential"
-        ).didcommAgent.edgeAgent.verifiableCredentials()
-        
-        let credential = try await credentials.map { $0.first }.first().await()
-        
-        let message = try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "get proof request"
-        ).proofOfRequestStack.first!
-        try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "remove it from list"
-        ).proofOfRequestStack.removeFirst()
-        let requestPresentationMessage = try RequestPresentation(fromMessage: message)
-        let sendProofMessage = try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "make message"
-        ).didcommAgent.createPresentationForRequestProof(
-            request: requestPresentationMessage,
-            credential: credential!,
-            options: [.disclosingClaims(claims: ["automation-required"])]
-        ).makeMessage()
-        _ = try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "send message"
-        ).didcommAgent.sendMessage(message: sendProofMessage)
+        try await edgeAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "creates and send the proof"
+        ) { sdk in
+            let credentials = sdk.didcommAgent.edgeAgent.verifiableCredentials()
+            let credential = try await credentials.map { $0.first }.first().await()
+            let message = sdk.proofOfRequestStack.removeFirst()
+            let requestPresentationMessage = try RequestPresentation(fromMessage: message)
+            let sendProofMessage = try await sdk.didcommAgent.createPresentationForRequestProof(
+                request: requestPresentationMessage,
+                credential: credential!,
+                options: [.disclosingClaims(claims: ["automation-required"])]
+            ).makeMessage()
+            _ = try await sdk.didcommAgent.sendMessage(message: sendProofMessage)
+        }
     }
     
     static func tryToPresentVerificationRequestWithWrongAnoncred(edgeAgent: Actor) async throws {
-        let credential = try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "get a verifiable credential"
-        ).didcommAgent.edgeAgent.verifiableCredentials().map { $0.first }.first().await()
-        
-        let message = try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "get proof request"
-        ).proofOfRequestStack.first!
-        try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "remove it from list"
-        ).proofOfRequestStack.removeFirst()
-        let requestPresentationMessage = try RequestPresentation(fromMessage: message)
-        await assertThrows(try await edgeAgent.using(
-            ability: DidcommAgentAbility.self,
-            action: "make message"
-        ).didcommAgent.createPresentationForRequestProof(request: requestPresentationMessage, credential: credential!).makeMessage())
+        try await edgeAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "get a verifiable credential"
+        ) { sdk in
+            let credential = try await sdk.didcommAgent.edgeAgent.verifiableCredentials().map { $0.first }.first().await()
+            let message = sdk.proofOfRequestStack.first!
+            _ = sdk.proofOfRequestStack.removeFirst()
+            let requestPresentationMessage = try RequestPresentation(fromMessage: message)
+            await assertThrows(try await sdk.didcommAgent.createPresentationForRequestProof(request: requestPresentationMessage, credential: credential!).makeMessage())
+        }
     }
     
     static func shouldNotBeAbleToCreatePresentProof(edgeAgent: Actor) async throws {
-        await assertThrows(try await presentProof(edgeAgent: edgeAgent))
+        try await edgeAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "tries to create the proof"
+        ) { sdk in
+            let credentials = sdk.didcommAgent.edgeAgent.verifiableCredentials()
+            let credential = try await credentials.map { $0.first }.first().await()
+            let message = sdk.proofOfRequestStack.removeFirst()
+            let requestPresentationMessage = try RequestPresentation(fromMessage: message)
+            try await assertThrows(await sdk.didcommAgent.createPresentationForRequestProof(
+                request: requestPresentationMessage,
+                credential: credential!,
+                options: [.disclosingClaims(claims: ["automation-required"])]
+            ).makeMessage())
+        }
     }
     
     static func createBackup(edgeAgent: Actor) async throws {
-        let backup = try await edgeAgent
-            .using(ability: DidcommAgentAbility.self, action: "creates a backup")
-            .didcommAgent
-            .edgeAgent
-            .backupWallet()
-        let seed = try await edgeAgent
-            .using(ability: DidcommAgentAbility.self, action: "gets seed phrase")
-            .didcommAgent
-            .edgeAgent
-            .seed
-        try await edgeAgent.remember(key: "backup", value: backup)
-        try await edgeAgent.remember(key: "seed", value: seed)
+        try await edgeAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "creates a backup"
+        ) { sdk in
+            let backup = try await sdk.didcommAgent.edgeAgent.backupWallet()
+            let seed = sdk.didcommAgent.edgeAgent.seed
+            try await edgeAgent.remember(key: "backup", value: backup)
+            try await edgeAgent.remember(key: "seed", value: seed)
+        }
     }
     
     static func createNewWalletFromBackup(restoredAgent: Actor, edgeAgent: Actor) async throws {
         let backup: String = try await edgeAgent.recall(key: "backup")
         let seed: Seed = try await edgeAgent.recall(key: "seed")
-        try await restoredAgent
-            .whoCanUse(DidcommAgentAbility(seed: seed))
-            .using(ability: DidcommAgentAbility.self, action: "recover wallet")
-            .didcommAgent.edgeAgent.recoverWallet(encrypted: backup)
+        try await restoredAgent.whoCanUse(DidcommAgentAbility(seed: seed)).perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "recover wallet"
+        ) { sdk in
+            try await sdk.didcommAgent.edgeAgent.recoverWallet(encrypted: backup)
+        }
     }
     
     static func createNewWalletFromBackupWithWrongSeed(restoredAgent: Actor, edgeAgent: Actor) async throws {
         let backup: String = try await edgeAgent.recall(key: "backup")
         let seed = DidcommAgentAbility.wrongSeed
         
-        do {
-            try await restoredAgent
-                .whoCanUse(DidcommAgentAbility(seed: seed))
-                .using(ability: DidcommAgentAbility.self, action: "recover wallet")
-                .didcommAgent.edgeAgent.recoverWallet(encrypted: backup)
-            XCTFail("SDK should not be able to restore with wrong seed phrase.")
-        } catch {
+        try await restoredAgent.whoCanUse(DidcommAgentAbility(seed: seed)).perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "recover wallet"
+        ) { sdk in
+            do {
+                try await sdk.didcommAgent.edgeAgent.recoverWallet(encrypted: backup)
+                XCTFail("SDK should not be able to restore with wrong seed phrase.")
+            } catch {
+            }
         }
     }
     
     static func createPeerDids(edgeAgent: Actor, numberOfDids: Int) async throws {
         for _ in 0..<numberOfDids {
-            let did: DID = try await edgeAgent.using(ability: DidcommAgentAbility.self, action: "creates peer did")
-                .didcommAgent.createNewPeerDID(updateMediator: true)
+            let did: DID = try await edgeAgent.perform(
+                withAbility: DidcommAgentAbility.self,
+                description: "creates peer did"
+            ){ sdk in
+                try await sdk.didcommAgent.createNewPeerDID(updateMediator: true)
+            }
             try await edgeAgent.remember(key: "lastPeerDid", value: did)
         }
     }
     
     static func createPrismDids(edgeAgent: Actor, numberOfDids: Int) async throws {
         for _ in 0..<numberOfDids {
-            _ = try await edgeAgent.using(ability: DidcommAgentAbility.self, action: "creates peer did").didcommAgent.createNewPrismDID()
+            _ = try await edgeAgent.perform(
+                withAbility: DidcommAgentAbility.self,
+                description: "creates peer did"
+            ){ sdk in
+                try await sdk.didcommAgent.createNewPrismDID()
+            }
         }
     }
     
     static func backupAndRestoreToNewAgent(newAgent: Actor, oldAgent: Actor) async throws {
         let backup: String = try await oldAgent.recall(key: "backup")
-        try await newAgent
-            .using(ability: DidcommAgentAbility.self, action: "recovers wallet")
-            .didcommAgent.edgeAgent.recoverWallet(encrypted: backup)
+        try await newAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "recovers wallet"
+        ){ sdk in
+            try await sdk.didcommAgent.edgeAgent.recoverWallet(encrypted: backup)
+        }
     }
     
     static func newAgentShouldMatchOldAgent(newAgent: Actor, oldAgent: Actor) async throws {
-        let expectedCredentials: [Credential] = try await oldAgent
-            .using(ability: DidcommAgentAbility.self, action: "gets credentials")
-            .didcommAgent
-            .edgeAgent
-            .verifiableCredentials().first().await()
+        let expectedCredentials: [Credential] = try await oldAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "gets credentials"
+        ){ try await $0.didcommAgent.edgeAgent.verifiableCredentials().first().await() }
         
-        let expectedPeerDids: [PeerDID] = try await oldAgent
-            .using(ability: DidcommAgentAbility.self, action: "gets peer dids")
-            .didcommAgent
-            .pluto.getAllPeerDIDs().first().await()
-            .map { try PeerDID(didString: $0.did.string) }
+        let expectedPeerDids: [PeerDID] = try await oldAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "gets peer dids"
+        ){ try await $0.didcommAgent.pluto.getAllPeerDIDs().first().await().map { try PeerDID(didString: $0.did.string) }}
         
-        let expectedPrismDids: [DID] = try await oldAgent
-            .using(ability: DidcommAgentAbility.self, action: "gets prism dids")
-            .didcommAgent
-            .pluto.getAllPrismDIDs().first().await()
-            .map { try DID(string: $0.did.string) }
+        let expectedPrismDids: [DID] = try await oldAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "gets prism dids"
+        ){ try await $0.didcommAgent.pluto.getAllPrismDIDs().first().await().map { try DID(string: $0.did.string) }}
         
-        let expectedDidPairs: [DIDPair] = try await oldAgent
-            .using(ability: DidcommAgentAbility.self, action: "gets did pairs")
-            .didcommAgent
-            .pluto.getAllDidPairs().first().await()
+        let expectedDidPairs: [DIDPair] = try await oldAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "gets did pairs"
+        ){ try await $0.didcommAgent.pluto.getAllDidPairs().first().await() }
         
-        let actualCredentials: [Credential] = try await newAgent
-            .using(ability: DidcommAgentAbility.self, action: "gets credentials")
-            .didcommAgent.edgeAgent
-            .verifiableCredentials().first().await()
+        let actualCredentials: [Credential] = try await newAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "gets credentials"
+        ){ try await $0.didcommAgent.edgeAgent.verifiableCredentials().first().await() }
         
-        let actualPeerDids: [PeerDID] = try await newAgent
-            .using(ability: DidcommAgentAbility.self, action: "gets peer dids")
-            .didcommAgent
-            .pluto.getAllPeerDIDs().first().await()
-            .map { try PeerDID(didString: $0.did.string) }
+        let actualPeerDids: [PeerDID] = try await newAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "gets peer dids"
+        ){ try await $0.didcommAgent.pluto.getAllPeerDIDs().first().await().map { try PeerDID(didString: $0.did.string) }}
         
-        let actualPrismDids: [DID] = try await newAgent
-            .using(ability: DidcommAgentAbility.self, action: "gets prism dids")
-            .didcommAgent
-            .pluto.getAllPrismDIDs().first().await()
-            .map { try DID(string: $0.did.string) }
+        let actualPrismDids: [DID] = try await newAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "gets prism dids"
+        ){ try await $0.didcommAgent.pluto.getAllPrismDIDs().first().await().map { try DID(string: $0.did.string) }}
         
-        let actualDidPairs: [DIDPair] = try await newAgent
-            .using(ability: DidcommAgentAbility.self, action: "gets did pairs")
-            .didcommAgent.pluto.getAllDidPairs().first().await()
+        let actualDidPairs: [DIDPair] = try await newAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "gets did pairs"
+        ){ try await $0.didcommAgent.pluto.getAllDidPairs().first().await() }
         
         let previousPeerDids: Int = try await newAgent.recall(key: "currentPeerDids")
         let previousPrismDids: Int = try await newAgent.recall(key: "currentPrismDids")
@@ -372,7 +341,6 @@ class EdgeAgentWorkflow {
         expectedDidPairs.forEach { expectedDidPair in
             assertThat(actualDidPairs.contains(where: { $0.name == expectedDidPair.name }), equalTo(true))
         }
-        
         actualPeerDids.forEach { peerDid in
             let contain = expectedPeerDids.contains(where: { $0.string == peerDid.string })
             print("\(peerDid.string) is contained in expected? \(contain)")
@@ -383,8 +351,8 @@ class EdgeAgentWorkflow {
         try await edgeAgent.waitUsingAbility(
             ability: DidcommAgentAbility.self,
             action: "wait for revocation notification"
-        ) { ability in
-            return ability.revocationStack.count == numberOfRevocation
+        ) { sdk in
+            return sdk.revocationStack.count == numberOfRevocation
         }
     }
     
@@ -393,10 +361,12 @@ class EdgeAgentWorkflow {
         for revokedRecordId in revokedRecordIdList {
             revokedIdList.append(try await edgeAgent.recall(key: revokedRecordId))
         }
-        let credentials = try await edgeAgent
-            .using(ability: DidcommAgentAbility.self, action: "")
-            .didcommAgent.edgeAgent
-            .verifiableCredentials().first().await()
+        let credentials = try await edgeAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "gets the latest credential"
+        ){ sdk in
+            try await sdk.didcommAgent.edgeAgent.verifiableCredentials().first().await()
+        }
         
         var revokedCredentials: [Credential] = []
         for credential in credentials {
@@ -413,53 +383,56 @@ class EdgeAgentWorkflow {
         toDid: DID,
         claims: [ClaimFilter]
     ) async throws {
-        let hostDid: DID = try await edgeAgent.using(ability: DidcommAgentAbility.self, action: "creates peer did")
-            .didcommAgent.createNewPeerDID(updateMediator: true)
-        let request = try await edgeAgent.using(ability: DidcommAgentAbility.self, action: "creates verification request")
-            .didcommAgent.initiatePresentationRequest(
+        try await edgeAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "initiates presentation request"
+        ) { sdk in
+            let hostDid: DID = try await sdk.didcommAgent.createNewPeerDID(updateMediator: true)
+            let request = try sdk.didcommAgent.initiatePresentationRequest(
                 type: credentialType,
                 fromDID: hostDid,
                 toDID: toDid,
                 claimFilters: claims
             )
-        _ = try await edgeAgent.using(ability: DidcommAgentAbility.self, action: "sends verification request")
-            .didcommAgent.sendMessage(message: request.makeMessage())
+            _ = try await sdk.didcommAgent.sendMessage(message: request.makeMessage())
+        }
     }
     
     static func waitForPresentationMessage(edgeAgent: Actor, numberOfPresentations: Int = 1) async throws {
         try await edgeAgent.waitUsingAbility(
             ability: DidcommAgentAbility.self,
             action: "waits for presentation message"
-        ) { ability in
-            return ability.presentationStack.count == numberOfPresentations
+        ) { sdk in
+            return sdk.presentationStack.count == numberOfPresentations
         }
     }
     
     static func verifyPresentation(edgeAgent: Actor, isRevoked: Bool = false) async throws {
-        let presentation = try await edgeAgent.using(ability: DidcommAgentAbility.self, action: "retrieves presentation message")
-            .presentationStack.removeFirst()
-        do {
-            let result = try await edgeAgent.using(
-                ability: DidcommAgentAbility.self,
-                action: "verify the presentation"
-            ).didcommAgent.verifyPresentation(message: presentation)
-            assertThat(isRevoked, equalTo(false))
-        } catch let error as PolluxError {
-            switch error {
-            case .cannotVerifyCredential(let credential, let internalErrors):
-                assertThat(internalErrors.count == 1)
-                if internalErrors[0] is PolluxError {
-                    switch internalErrors[0] as! PolluxError {
-                    case .credentialIsRevoked:
-                        assertThat(isRevoked, equalTo(true))
-                    default:
+        try await edgeAgent.perform(
+            withAbility: DidcommAgentAbility.self,
+            description: "verify the presentation"
+        ) { sdk in
+            let presentation = sdk.presentationStack.removeFirst()
+            do {
+                _ = try await sdk.didcommAgent.verifyPresentation(message: presentation)
+                assertThat(isRevoked, equalTo(false))
+            } catch let error as PolluxError {
+                switch error {
+                case .cannotVerifyCredential(_, let internalErrors):
+                    assertThat(internalErrors.count == 1)
+                    if internalErrors[0] is PolluxError {
+                        switch internalErrors[0] as! PolluxError {
+                        case .credentialIsRevoked:
+                            assertThat(isRevoked, equalTo(true))
+                        default:
+                            throw internalErrors[0]
+                        }
+                    } else {
                         throw internalErrors[0]
                     }
-                } else {
-                    throw internalErrors[0]
+                default:
+                    throw error
                 }
-            default:
-                throw error
             }
         }
     }

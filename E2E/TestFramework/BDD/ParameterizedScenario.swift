@@ -2,18 +2,18 @@ import Foundation
 import XCTest
 
 public class ParameterizedScenario: Scenario {
-    public var parameters: [[String: String]] = [[:]]
+    public var table: [[String: String]] = [[:]]
 
-    public func parameters(_ parameters: [[String: String]]) -> Scenario {
-        self.parameters = parameters
+    public func table(_ table: [[String: String]]) -> Scenario {
+        self.table = table
         return self
     }
     
     public func build() -> [Scenario] {
         var scenarios: [Scenario] = []
         
-        parameters.forEach { parameters in
-            let scenario = Scenario(replace(line: self.title, parameters: parameters))
+        table.forEach { parameters in
+            let scenario = Scenario(replace(line: self.name, parameters: parameters), parameters: parameters)
             scenario.steps = self.steps.map { step in
                 let newStep = ConcreteStep()
                 newStep.context = step.context

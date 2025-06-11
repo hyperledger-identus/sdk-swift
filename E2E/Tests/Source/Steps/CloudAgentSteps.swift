@@ -1,5 +1,6 @@
 import Foundation
 import TestFramework
+import SwiftHamcrest
 
 class CloudAgentSteps: Steps {
     @Step("{actor} offers '{int}' anonymous credentials")

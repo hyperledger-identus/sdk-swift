@@ -11,11 +11,12 @@ public class ConsoleReporter: Reporter {
     
     public func beforeFeature(_ feature: Feature) async throws {
         print()
+        print("---")
         print("Feature:", feature.title())
     }
     
     public func beforeScenario(_ scenario: Scenario) async throws {
-        print("    ", scenario.title)
+        print("    ", scenario.name)
     }
     
     public func beforeStep(_ step: ConcreteStep) async throws {
@@ -35,12 +36,11 @@ public class ConsoleReporter: Reporter {
     }
     
     public func afterScenario(_ scenarioOutcome: ScenarioOutcome) async throws {
-        let result = scenarioOutcome.failedStep != nil ? "FAIL" : "PASS"
-        print("    ", "Result:", result)
+        print("    ", "Result:", scenarioOutcome.status.rawValue.uppercased())
     }
     
     public func afterFeature(_ featureOutcome: FeatureOutcome) async throws {
-        print()
+        print("Feature result", featureOutcome.status.rawValue.uppercased())
     }
     
     public func afterFeatures(_ featuresOutcome: [FeatureOutcome]) async throws {

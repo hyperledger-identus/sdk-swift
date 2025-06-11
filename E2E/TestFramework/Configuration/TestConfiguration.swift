@@ -7,13 +7,14 @@ open class TestConfiguration: ITestConfiguration {
     public static var shared = { instance! }
     
     public var environment: [String: String] = [:]
-    private static var instance: ITestConfiguration? = nil
+    private static var instance: TestConfiguration? = nil
     private static var actors: [String: Actor] = [:]
     
     private var assertionFailure: (String, StaticString, UInt)? = nil
+    private var actionFailure: (String, Error, StaticString, UInt)? = nil
     private var reporters: [Reporter] = []
     
-    private var result: ResultOutcome = ResultOutcome()
+    internal var suiteOutcome: SuiteOutcome = SuiteOutcome()
     private var features: [Feature.Type] = []
     private var steps: [Steps] = []
     
@@ -24,7 +25,7 @@ open class TestConfiguration: ITestConfiguration {
         self.environment = readEnvironmentVariables(bundlePath: bundlePath)
     }
     
-    open class func createInstance() -> ITestConfiguration {
+    open class func createInstance() -> TestConfiguration {
         fatalError("Configuration must implement createInstance method")
     }
     
@@ -66,11 +67,11 @@ open class TestConfiguration: ITestConfiguration {
     }
     
     /// Main function that runs feature, scenario and steps
-    public func run(_ feature: Feature, _ scenario: Scenario) async throws {
+    public func run(_ feature: Feature, _ scenario: Scenario?) async throws {
         currentScenario = scenario
         try await beforeFeature(feature)
-        try await beforeScenario(scenario)
-        let scenarioOutcome = try await runSteps(scenario)
+        try await beforeScenario(scenario!)
+        let scenarioOutcome = try await runSteps(scenario!)
         try await afterScenario(scenarioOutcome)
     }
     
@@ -82,8 +83,9 @@ open class TestConfiguration: ITestConfiguration {
         }
         
         features.append(type)
-        currentFeatureOutcome = FeatureOutcome(feature)
-        result.featuresOutcome.append(currentFeatureOutcome!)
+        currentFeatureOutcome = FeatureOutcome(feature: feature)
+        currentFeatureOutcome!.start()
+        suiteOutcome.featureOutcomes.append(currentFeatureOutcome!)
         
         try await report(.BEFORE_FEATURE, feature)
     }
@@ -94,61 +96,136 @@ open class TestConfiguration: ITestConfiguration {
     }
     
     public func beforeStep(_ step: ConcreteStep) async throws {
-        try await report(.BEFORE_STEP, step.action)
+        try await report(.BEFORE_STEP, step)
     }
     
     func runSteps(_ scenario: Scenario) async throws -> ScenarioOutcome {
+        if scenario.disabled {
+            return ScenarioOutcome(scenario)
+        }
+        
         let scenarioOutcome = ScenarioOutcome(scenario)
+        scenarioOutcome.start()
         
         for step in scenario.steps {
-            let stepOutcome: StepOutcome
+            var determinedStepStatus: TestStatus
+            var stepError: Error? = nil
+            let stepOutcome = StepOutcome(step)
             try await report(.BEFORE_STEP, step)
-            
             do {
+                stepOutcome.start()
                 try await StepRegistry.run(step)
-                if (assertionFailure != nil) {
-                    let message = assertionFailure!.0
-                    let file = assertionFailure!.1
-                    let line = assertionFailure!.2
+                stepOutcome.end()
+                if let currentAssertionFailure = assertionFailure {
+                    self.assertionFailure = nil
+                    let message = currentAssertionFailure.0
+                    let file = currentAssertionFailure.1
+                    let line = currentAssertionFailure.2
                     XCTFail(message, file: file, line: line)
-                    throw Assertion.AssertionError(
+                    stepError = Assertion.AssertionError(
                         message: message,
                         file: file,
                         line: line
                     )
+                    determinedStepStatus = .failed
+                } else if let currentActionFailure = actionFailure {
+                    self.actionFailure = nil
+                    let message = currentActionFailure.0
+                    let error = currentActionFailure.1
+                    let file = currentActionFailure.2
+                    let line = currentActionFailure.3
+                    XCTFail(message, file: file, line: line)
+                    stepError = ActorError.actionError(
+                        message: message,
+                        error: error,
+                        file: file,
+                        line: line
+                    )
+                    determinedStepStatus = .broken
+                } else {
+                    determinedStepStatus = .passed
                 }
-                stepOutcome = StepOutcome(step)
+            } catch let assertionErr as Assertion.AssertionError {
+                stepError = assertionErr
+                determinedStepStatus = .failed
+            } catch let error as BaseError {
+                XCTFail(error.localizedDescription, file: error.file, line: error.line)
+                stepError = error
+                determinedStepStatus = .failed
             } catch {
-                stepOutcome = StepOutcome(step, error)
                 currentScenario!.fail(file: step.file, line: step.line, message: String(describing: error))
+                stepError = error
+                determinedStepStatus = .broken
             }
             
+            stepOutcome.status = determinedStepStatus
+            stepOutcome.error = stepError
             scenarioOutcome.steps.append(stepOutcome)
             try await report(.AFTER_STEP, stepOutcome)
-            assertionFailure = nil
             
-            if (stepOutcome.error != nil) {
-                scenarioOutcome.failedStep = stepOutcome
+            if stepOutcome.status == .failed || stepOutcome.status == .broken {
+                scenarioOutcome.status = stepOutcome.status
+                scenarioOutcome.error = stepOutcome.error
+                break
+            }
+            
+            if stepOutcome.status == .pending {
+                scenarioOutcome.status = stepOutcome.status
                 break
             }
         }
+        
+        actionFailure = nil
+        scenarioOutcome.end()
         return scenarioOutcome
+        
     }
     
+    func executeAction<T>(
+        _ message: String,
+        _ file: StaticString,
+        _ line: UInt,
+        _ closure: () async throws -> T
+    ) async throws -> T {
+        /// skip if any previous action failed
+        if (actionFailure != nil) {
+            throw actionFailure!.1
+        }
+        
+        let actionOutcome = ActionOutcome(action: message)
+        actionOutcome.start()
+        do {
+            let result = try await closure()
+            actionOutcome.status = .passed
+            actionOutcome.end()
+            try await TestConfiguration.shared().report(.ACTION, actionOutcome)
+            return result
+        } catch {
+            actionOutcome.status = .failed
+            actionOutcome.error = error
+            actionOutcome.end()
+            try await TestConfiguration.shared().report(.ACTION, actionOutcome)
+            actionFailure = (message: message, error: error, file: file, line: line)
+            throw error
+        }
+    }
+
     public func afterStep(_ stepOutcome: StepOutcome) async throws {
-        try await report(.AFTER_STEP, stepOutcome.step.action)
+        try await report(.AFTER_STEP, stepOutcome)
     }
     
     public func afterScenario(_ scenarioOutcome: ScenarioOutcome) async throws {
-        currentFeatureOutcome!.scenarios.append(scenarioOutcome)
-        if (scenarioOutcome.failedStep != nil) {
-            currentFeatureOutcome!.failedScenarios.append(scenarioOutcome)
+        guard let currentFeatureOut = self.currentFeatureOutcome else {
+            print("TestConfiguration Error: currentFeatureOutcome is nil in afterScenario for scenario: \(scenarioOutcome.scenario.name)")
+            return
         }
+        currentFeatureOut.scenarioOutcomes.append(scenarioOutcome)
         try await report(.AFTER_SCENARIO, scenarioOutcome)
         try await tearDownActors()
     }
     
     public func afterFeature(_ featureOutcome: FeatureOutcome) async throws {
+        currentFeatureOutcome!.end()
         try await report(.AFTER_FEATURE, featureOutcome)
     }
     
@@ -157,14 +234,27 @@ open class TestConfiguration: ITestConfiguration {
     }
     
     public func endCurrentFeature() async throws {
-        try await self.afterFeature(self.currentFeatureOutcome!)
+        guard let featureOutcomeToFinalize = self.currentFeatureOutcome else {
+            print("TestConfiguration Error: currentFeatureOutcome is nil in endCurrentFeature.")
+            return
+        }
+        var possibleFeatureError: Error? = nil
+        do {
+            try await self.tearDownInstance()
+        } catch {
+            possibleFeatureError = error
+        }
+
+        featureOutcomeToFinalize.finalizeOutcome(featureLevelError: possibleFeatureError)
+        try await self.afterFeature(featureOutcomeToFinalize)
     }
     
     /// signals the suite has ended
     public func end() {
         let semaphore = DispatchSemaphore(value: 0)
         Task.detached {
-            try await self.afterFeatures(self.result.featuresOutcome)
+            self.suiteOutcome.end()
+            try await self.afterFeatures(self.suiteOutcome.featureOutcomes)
             try await self.tearDownInstance()
             semaphore.signal()
         }
@@ -241,25 +331,22 @@ open class TestConfiguration: ITestConfiguration {
         let instanceType = (subclasses[0] as! ITestConfiguration.Type)
         
         // force as own instance
-        let instance = instanceType.createInstance() as! TestConfiguration
+        let instance = instanceType.createInstance()
+        instance.suiteOutcome.start()
+        self.instance = instance
         
         do {
             try await instance.setUp()
             try await instance.setUpReporters()
             try await instance.setUpSteps()
         } catch {
-            print("Error setting up configuration: \(error)")
-            fflush(stdout)
-            fflush(stderr)
-            exit(1)
+            throw ConfigurationError.setup(message: error.localizedDescription)
         }
-
+        
         /// setup hamcrest to update variable if failed
         HamcrestReportFunction = { message, file, line in
             instance.assertionFailure = (message, file, line)
         }
-        
-        self.instance = instance
         
         let fileManager = FileManager.default
         /// delete target folder
@@ -319,11 +406,5 @@ open class TestConfiguration: ITestConfiguration {
     @ParameterParser
     var intParser = { (int: String) in
         return Int(int)!
-    }
-    
-    enum Failure: Error {
-        case StepParameterDoesNotMatch(step: String, expected: String, actual: String)
-        case StepNotFound(step: String)
-        case ParameterTypeNotFound
     }
 }
