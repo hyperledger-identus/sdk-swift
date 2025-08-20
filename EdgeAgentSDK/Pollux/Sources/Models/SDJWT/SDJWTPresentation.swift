@@ -10,7 +10,7 @@ struct SDJWTPresentation {
         type: String,
         requestData: Data,
         options: [CredentialOperationsOptions]
-    ) throws -> String{
+    ) async throws -> String{
         guard
             let exportableKeysOption = options.first(where: {
                 if case .exportableKeys = $0 { return true }
@@ -42,14 +42,14 @@ struct SDJWTPresentation {
 
         switch type {
         case "dif/presentation-exchange/definitions@v1.0":
-            return try presentation(
+            return try await presentation(
                 credential: credential,
                 request: requestData,
                 disclosingClaims: disclosingClaims,
                 key: exportableFirstKey
             )
         default:
-            return try vcPresentation(
+            return try await vcPresentation(
                 credential: credential,
                 request: requestData,
                 disclosingClaims: disclosingClaims,
@@ -63,7 +63,7 @@ struct SDJWTPresentation {
         request: Data,
         disclosingClaims: [String],
         key: ExportableKey
-    ) throws -> String {
+    ) async throws -> String {
         let presentationRequest = try JSONDecoder.didComm().decode(PresentationExchangeRequest.self, from: request)
 
         guard
@@ -95,7 +95,7 @@ struct SDJWTPresentation {
             descriptorMap: presentationDefinitions
         )
 
-        let payload = try vcPresentation(
+        let payload = try await vcPresentation(
             credential: credential,
             request: request,
             disclosingClaims: disclosingClaims,
@@ -115,7 +115,7 @@ struct SDJWTPresentation {
         request: Data,
         disclosingClaims: [String],
         key: ExportableKey
-    ) throws -> String {
+    ) async throws -> String {
         let disclosures = credential.sdjwt.disclosures.filter { disclosure in
             disclosingClaims.first {
                 guard
@@ -125,7 +125,7 @@ struct SDJWTPresentation {
             } != nil
         }
 
-        let sdJwt = try SDJWTIssuer.presentation(
+        let sdJwt = try await SDJWTIssuer.presentation(
             holdersPrivateKey: key.jwk.toJoseJWK(),
             signedSDJWT: credential.sdjwt,
             disclosuresToPresent: disclosures,

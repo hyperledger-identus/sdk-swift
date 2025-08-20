@@ -26,8 +26,8 @@ struct SDJWTPresentationExchangeParser: SubmissionDescriptorFormatParser {
 
     func parsePayload(path: String, presentationData: Data) async throws -> Data {
         let sdjwt = try await parse(path: path, presentationData: presentationData)
-        let json = try CompactParser(serialisedString: sdjwt)
-            .getSignedSdJwt()
+        let json = try CompactParser()
+            .getSignedSdJwt(serialisedString: sdjwt)
             .recreateClaims()
             .recreatedClaims
 

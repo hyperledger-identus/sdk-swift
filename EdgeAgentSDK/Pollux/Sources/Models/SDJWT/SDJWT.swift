@@ -8,7 +8,7 @@ struct SDJWTCredential {
     let sdjwt: SignedSDJWT
 
     init(sdjwtString: String) throws {
-        let sdjwt = try CompactParser(serialisedString: sdjwtString).getSignedSdJwt()
+        let sdjwt = try CompactParser().getSignedSdJwt(serialisedString: sdjwtString)
         self.sdjwtString = sdjwtString
         self.sdjwt = sdjwt
     }

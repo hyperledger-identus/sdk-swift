@@ -87,7 +87,7 @@ final class AnoncredsTests: XCTestCase {
 
         let presentationRequest = try issuer.createPresentationRequest()
 
-        let presentation = try credential.proof!.presentation(
+        let presentation = try await credential.proof!.presentation(
             request: presentationRequest.message,
             options: [
                 .linkSecret(id: "", secret: issuer.linkSecret.getValue()),

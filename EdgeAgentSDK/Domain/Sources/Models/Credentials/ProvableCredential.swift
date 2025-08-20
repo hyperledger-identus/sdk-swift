@@ -10,7 +10,7 @@ public protocol ProvableCredential {
     /// - Returns: The proof as a `String`.
     /// - Throws: If there is an error creating the proof.
     @available(*, deprecated, message: "Please use the new method for presentation(type: requestPayload: options:)")
-    func presentation(request: Message, options: [CredentialOperationsOptions]) throws -> String
+    func presentation(request: Message, options: [CredentialOperationsOptions]) async throws -> String
 
     /// Creates a presentation proof for a request message with the given options.
     ///
@@ -19,7 +19,7 @@ public protocol ProvableCredential {
     ///   - options: The options to use when creating the proof.
     /// - Returns: The proof as a `String`.
     /// - Throws: If there is an error creating the proof.
-    func presentation(type: String, requestPayload: Data, options: [CredentialOperationsOptions]) throws -> String
+    func presentation(type: String, requestPayload: Data, options: [CredentialOperationsOptions]) async throws -> String
 
     /// Validates if the credential can be used for the given presentation request, using the specified options.
     ///

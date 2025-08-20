@@ -190,7 +190,7 @@ final class PresentationExchangeFlowTests: XCTestCase {
             fatalError()
         }
 
-        let sdjwt = try SDJWTIssuer.issue(
+        let sdjwt = try await SDJWTIssuer.issue(
             issuersPrivateKey: try jwkD.toJoseJWK(),
             header: DefaultJWSHeaderImpl(algorithm: .ES256K)
         ) {

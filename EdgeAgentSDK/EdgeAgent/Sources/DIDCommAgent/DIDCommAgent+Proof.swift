@@ -39,7 +39,7 @@ public extension DIDCommAgent {
                 let linkSecretString = String(data: restored.raw, encoding: .utf8)
             else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
             format = "anoncreds/proof@v1.0"
-            presentationString = try proofableCredential.presentation(
+            presentationString = try await proofableCredential.presentation(
                 request: request.makeMessage(),
                 options: options + [
                     .linkSecret(id: "", secret: linkSecretString)
@@ -63,7 +63,7 @@ public extension DIDCommAgent {
 
             format = requestType == "prism/jwt" ? "prism/jwt" : "dif/presentation-exchange/submission@v1.0"
 
-            presentationString = try proofableCredential.presentation(
+            presentationString = try await proofableCredential.presentation(
                 request: request.makeMessage(),
                 options: options + [
                     .exportableKeys(exporting),
