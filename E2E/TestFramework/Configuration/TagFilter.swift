@@ -47,7 +47,7 @@ struct TagFilter {
         return true
     }
     
-    /// Evaluates a single tag condition (e.g., "@smoke" or "not @wip").
+    /// Evaluates a single tag condition (e.g., "smoke" or "not wip").
     private func evaluateCondition(condition: String, scenarioTags: Set<String>) -> Bool {
         let trimmedCondition = condition.trimmingCharacters(in: .whitespacesAndNewlines)
 
