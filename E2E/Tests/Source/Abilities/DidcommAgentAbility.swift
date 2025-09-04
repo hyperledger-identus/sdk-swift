@@ -164,17 +164,7 @@ class DidcommAgentAbility: Ability {
         let did = (jsonData["from"] as? String)!
         return try DID(string: did)
     }
-    
-    static private func getRootsMediatorDid() async throws -> DID {
-        let url = URL(string: Config.mediatorOobUrl)!
-        let invitationUrl: String = try await Api.get(from: url)
-        let base64data: String = String(invitationUrl.split(separator: "?_oob=").last!)
-        let decodedData = Data(base64Encoded: base64data)!
-        let json = try (JSONSerialization.jsonObject(with: decodedData, options: []) as? [String: Any])!
-        let from = (json["from"] as? String)!
-        return try DID(string: from)
-    }
-    
+
     private static func fromBase64(_ encoded: String) -> Data {
         var encoded = encoded;
         let remainder = encoded.count % 4

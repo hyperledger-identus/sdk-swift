@@ -1,11 +1,9 @@
 import TestFramework
 
-final class VerifyJwt: Feature {
-    override func title() -> String {
-        "Verify JWT presentation"
-    }
-    
-    override func description() -> String {
+final class VerifyJwtCredential: Feature {
+    override var tags: [String] { ["verification", "jwt"] }
+    override var title: String { "Verify JWT presentation" }
+    override var narrative: String {
         "The Edge Agent should be able to receive a verifiable credential from Cloud Agent and then send a presentation to another edge agent who will verify it"
     }
     

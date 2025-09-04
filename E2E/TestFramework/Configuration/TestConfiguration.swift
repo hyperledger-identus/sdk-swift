@@ -100,9 +100,18 @@ open class TestConfiguration: ITestConfiguration {
     }
     
     func runSteps(_ scenario: Scenario) async throws -> ScenarioOutcome {
-        if scenario.disabled {
-            return ScenarioOutcome(scenario)
+        let tagString = TestConfiguration.shared().environment["TAGS"]
+        let tagFilter = TagFilter(from: tagString)
+        let scenarioTags = scenario.feature!.tags + scenario.tags
+        if !tagFilter.shouldRun(scenarioTags: scenarioTags) {
+            scenario.disabled = true
         }
+        if scenario.disabled {
+            let outcome = ScenarioOutcome(scenario)
+            outcome.status = .skipped
+            return outcome
+        }
+        
         
         let scenarioOutcome = ScenarioOutcome(scenario)
         scenarioOutcome.start()
@@ -222,6 +231,9 @@ open class TestConfiguration: ITestConfiguration {
         currentFeatureOut.scenarioOutcomes.append(scenarioOutcome)
         try await report(.AFTER_SCENARIO, scenarioOutcome)
         try await tearDownActors()
+        if (scenarioOutcome.status == .skipped) {
+            throw XCTSkip()
+        }
     }
     
     public func afterFeature(_ featureOutcome: FeatureOutcome) async throws {
@@ -335,13 +347,14 @@ open class TestConfiguration: ITestConfiguration {
         instance.suiteOutcome.start()
         self.instance = instance
         
-        do {
-            try await instance.setUp()
-            try await instance.setUpReporters()
-            try await instance.setUpSteps()
-        } catch {
-            throw ConfigurationError.setup(message: error.localizedDescription)
-        }
+        print("Setting up configuration instance")
+        try await instance.setUp()
+        
+        print("Setting up reporters")
+        try await instance.setUpReporters()
+        
+        print("Setting up steps")
+        try await instance.setUpSteps()
         
         /// setup hamcrest to update variable if failed
         HamcrestReportFunction = { message, file, line in

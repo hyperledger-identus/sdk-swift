@@ -1,14 +1,10 @@
 import TestFramework
 
 final class RevokeJwtCredential: Feature {
-    override func title() -> String {
-        "Revoke JWT Credential"
-    }
-
-    override func description() -> String {
-        "Edge Agent should be notified when Cloud Agent revokes a credential"
-    }
-
+    override var tags: [String] { ["revocation", "jwt"] }
+    override var title: String { "Revoke JWT Credential" }
+    override var narrative: String { "Edge Agent should be notified when Cloud Agent revokes a credential" }
+    
     func testRevocationNotification() async throws {
         currentScenario = Scenario("Revoke one verifiable credential")
             .given("Cloud Agent is connected to Edge Agent")

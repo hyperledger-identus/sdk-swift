@@ -266,14 +266,14 @@ public class AllureReporter: Reporter {
             testCaseId: calculatedTestCaseId,
             name: scenario.name,
             fullName: scenarioUniqueName,
-            description: scenario.feature?.description(),
+            description: scenario.feature?.narrative,
             labels: [
                 AllureLabel(name: "host", value: ProcessInfo.processInfo.hostName),
                 AllureLabel(name: "thread", value: getCurrentPid()),
                 AllureLabel(name: "package", value: generatePackageName(fromFeatureType: type(of: scenario.feature!))),
                 AllureLabel(name: "language", value: "swift"),
                 AllureLabel(name: "framework", value: "identus-e2e-framework"),
-                AllureLabel(name: "feature", value: scenario.feature!.title()),
+                AllureLabel(name: "feature", value: scenario.feature!.title),
                 //AllureLabel(name: "suite", value: "suite"), // FIXME: property? config?
                 //AllureLabel(name: "epic", value: "suite"), // FIXME: property? config?
                 //AllureLabel(name: "story", value: scenario.name)
@@ -386,7 +386,7 @@ public class AllureReporter: Reporter {
         container.stop = millisecondsSince1970(from: featureOutcome.endTime)
         if (featureOutcome.status == .broken || featureOutcome.status == .failed),
            let featureErr = featureOutcome.error { // From your FeatureOutcome model
-            let fixtureName = "Feature Level Issue: \(featureOutcome.feature.title())"
+            let fixtureName = "Feature Level Issue: \(featureOutcome.feature.title)"
             let problemFixture = AllureFixtureResult(
                 name: fixtureName,
                 status: mapFrameworkStatusToAllureStatus(featureOutcome.status),

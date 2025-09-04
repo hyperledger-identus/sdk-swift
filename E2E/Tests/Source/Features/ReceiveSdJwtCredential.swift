@@ -1,13 +1,9 @@
 import TestFramework
 
-final class ReceiveSdJwtCredentialTests: Feature {
-    override func title() -> String {
-        "Receive verifiable credential"
-    }
-    
-    override func description() -> String {
-        "The Edge Agent should be able to receive a verifiable credential from Cloud Agent"
-    }
+final class ReceiveSdJwtCredential: Feature {
+    override var tags: [String] { ["credential", "sdjwt"] }
+    override var title: String { "Receive verifiable credential" }
+    override var narrative: String { "The Edge Agent should be able to receive a verifiable credential from Cloud Agent" }
     
     func testReceiveOneCredential() async throws {
         currentScenario = Scenario("Receive one sd+jwt credential")

@@ -67,7 +67,7 @@ public class FeatureOutcome {
         } else {
             // This case should ideally not be reached if the above logic is complete.
             // Could default to .broken if there's an unexpected mix.
-            print("Warning: FeatureOutcome for '\(feature.title())' has an undetermined status mix.")
+//            print("Warning: FeatureOutcome for '\(feature.title())' has an undetermined status mix.")
             self.status = .broken // Default for unexpected mixed states
         }
     }

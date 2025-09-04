@@ -1,14 +1,9 @@
-import Foundation
 import TestFramework
 
-final class BackupFeature: Feature {
-    override func title() -> String {
-        "Backup"
-    }
-    
-    override func description() -> String {
-        "The Edge Agent should be able to create and restore a backup"
-    }
+final class Backup: Feature {
+    override var tags: [String] { ["backup"] }
+    override var title: String { "Backup" }
+    override var narrative: String { "The Edge Agent should be able to create and restore a backup" }
     
     func testCreateAndRestoreABackup() async throws {
         currentScenario = Scenario("Create and restore a backup")
@@ -18,6 +13,7 @@ final class BackupFeature: Feature {
     
     func testAgentWithoutProperSeedShouldNotBeAbleToRestoreTheBackup() async throws {
         currentScenario = Scenario("Agent without a seed should not be able to restore the backup")
+            .tags("quick")
             .given("Edge Agent has created a backup")
             .then("a new Restored Agent cannot be restored from Edge Agent with wrong seed")
     }

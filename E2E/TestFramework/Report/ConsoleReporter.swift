@@ -12,7 +12,7 @@ public class ConsoleReporter: Reporter {
     public func beforeFeature(_ feature: Feature) async throws {
         print()
         print("---")
-        print("Feature:", feature.title())
+        print("Feature:", feature.title)
     }
     
     public func beforeScenario(_ scenario: Scenario) async throws {
