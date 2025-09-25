@@ -12,7 +12,7 @@ public struct PolluxImpl {
         castor: Castor,
         pluto: Pluto,
         presentationExchangeParsers: [SubmissionDescriptorFormatParser],
-        logger: SDKLogger = SDKLogger(category: .pollux)
+        logger: SDKLogger = SDKLogger(category: LogComponent.pollux)
     ) {
         self.pluto = pluto
         self.castor = castor
@@ -23,7 +23,7 @@ public struct PolluxImpl {
     public init(
         castor: Castor,
         pluto: Pluto,
-        logger: SDKLogger = SDKLogger(category: .pollux)
+        logger: SDKLogger = SDKLogger(category: LogComponent.pollux)
     ) {
         self.init(
             castor: castor,

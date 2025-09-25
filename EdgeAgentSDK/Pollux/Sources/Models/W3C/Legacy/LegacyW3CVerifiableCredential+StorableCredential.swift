@@ -1,7 +1,7 @@
 import Domain
 import Foundation
 
-extension W3CVerifiableCredential: StorableCredential {
+extension LegacyW3CVerifiableCredential: StorableCredential {
     var storingId: String {
         id
     }

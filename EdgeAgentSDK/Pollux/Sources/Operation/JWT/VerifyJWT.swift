@@ -18,17 +18,17 @@ struct VerifyJWT {
 
         ES256KVerifier.bouncyCastleFailSafe = true
 
-        let validations = issuerKeys
+        let validations = await issuerKeys
             .compactMap(\.exporting)
-            .compactMap {
-                try? JWT.verify(jwtString: jwtString, senderKey: $0.jwk.toJoseJWK())
+            .asyncCompactMap {
+                try? await JWT.verify(jwtString: jwtString, senderKey: $0.jwk.toJoseJWK())
             }
         ES256KVerifier.bouncyCastleFailSafe = false
         return !validations.isEmpty
     }
 
     private func verifyJWTCredentialRevocation(jwtString: String) async throws {
-        guard let credential = try? JWTCredential(data: jwtString.tryToData()) else {
+        guard let credential = try? LegacyJWTCredential(data: jwtString.tryToData()) else {
             return
         }
         let isRevoked = try await credential.isRevoked

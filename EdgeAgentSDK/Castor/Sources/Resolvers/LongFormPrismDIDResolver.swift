@@ -91,7 +91,7 @@ struct LongFormPrismDIDResolver: DIDResolverDomain {
         stateHash: String,
         encodedData: Data
     ) throws -> ([PublicKeyDecoded], [DIDDocument.Service]) {
-        let verifyEncodedState = encodedData.sha256()
+        let verifyEncodedState = encodedData.sha256String()
         guard stateHash == verifyEncodedState else { throw CastorError.initialStateOfDIDChanged }
         let operation = try Io_Iohk_Atala_Prism_Protos_AtalaOperation(serializedData: encodedData)
         let publicKeys = try operation.createDid.didData.publicKeys.map {

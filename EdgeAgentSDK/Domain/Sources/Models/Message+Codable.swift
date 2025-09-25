@@ -1,3 +1,4 @@
+import Core
 import Foundation
 
 extension Message: Codable {
@@ -24,13 +25,14 @@ extension Message: Codable {
         try container.encode(id, forKey: .id)
         try container.encode(piuri, forKey: .type)
         if let dic = try? JSONSerialization.jsonObject(with: body) as? [String: Any?] {
-            var filteredDictionary = dic
+            // Remove nil and NSNull values, producing a non-optional [String: Any]
+            var filtered: [String: Any] = [:]
             for (key, value) in dic {
-                if value == nil || value is NSNull  {
-                    filteredDictionary.removeValue(forKey: key)
+                if let unwrapped = value, !(unwrapped is NSNull) {
+                    filtered[key] = unwrapped
                 }
             }
-            try container.encode(AnyCodable(filteredDictionary), forKey: .body)
+            try container.encode(AnyCodable(value: filtered), forKey: .body)
         } else {
             try container.encode(body, forKey: .body)
         }
@@ -99,3 +101,4 @@ extension Message: Codable {
         )
     }
 }
+

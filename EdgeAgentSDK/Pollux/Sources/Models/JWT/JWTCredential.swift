@@ -1,111 +1,79 @@
-import Domain
+import Core
 import Foundation
-import JSONWebSignature
+import JSONWebToken
+import Tools
 
+/// `JWTCredential` provides a convenient way to parse the payload of a JWT‑based
+/// Verifiable Credential using a JOSE envelope (JWS/JWT). It extracts the JWT
+/// payload and decodes it into a strongly typed VC model. This is useful when
+/// working with ecosystems that transport VCs in JWT form, as described in the
+/// W3C Verifiable Credentials Data Model (VCDM 1.0/1.1/2.0) and related specs.
+///
+/// Notes
+/// - This utility focuses on parsing/decoding. It does not perform cryptographic
+///   verification of the JWT/JWS. You should verify signatures and validate keys
+///   (e.g., via DID resolution or trusted key material) before trusting contents.
+/// - While this helper targets JOSE (JWS/JWT) envelopes, similar patterns apply
+///   to COSE/CBOR envelopes if you introduce a corresponding decoder.
+///
+/// - Conforms to:
+///   - `Credential`
+///   - `ProvableCredential`
+///   - `StorableCredential`
+///   - `RevocableCredential`
+///
+/// - See also:
+///   - W3C Verifiable Credentials Data Model 1.0 (2019): https://www.w3.org/TR/2019/REC-vc-data-model-20191119/
+///   - W3C Verifiable Credentials Data Model 1.1: https://www.w3.org/TR/vc-data-model-1.1/
+///   - W3C Verifiable Credentials Data Model 2.0: https://www.w3.org/TR/vc-data-model-2.0/
+///   - JSON Web Token (JWT): https://www.rfc-editor.org/rfc/rfc7519
+///   - JSON Web Signature (JWS): https://www.rfc-editor.org/rfc/rfc7515
+///   - COSE (CBOR Object Signing and Encryption): https://www.rfc-editor.org/rfc/rfc9052
+///   - `DefaultVerifiableCredential`, `JWTEnvelopedVerifiableCredential`, `Credential`, `ProvableCredential`
 public struct JWTCredential {
-    let jwtString: String
-    let jwtVerifiableCredential: JWTPayload
+    /// The original JWT compact serialization string (JOSE envelope).
+    public let jwtString: String
+    /// The parsed JOSE envelope with a `DefaultVerifiableCredential` payload.
+    ///
+    /// This provides quick access to a broadly compatible VC model without defining
+    /// custom generic types.
+    public let defaultEnvelop: JWTEnvelopedVerifiableCredential<DefaultVerifiableCredential>
 
-    public init(data: Data) throws {
-        guard let jwtString = String(data: data, encoding: .utf8) else { throw PolluxError.invalidJWTString }
-        var jwtParts = jwtString.components(separatedBy: ".")
-        guard jwtParts.count == 3 else { throw PolluxError.invalidJWTString }
-        jwtParts.removeFirst()
-        guard
-            let credentialString = jwtParts.first,
-            let base64Data = Data(fromBase64URL: credentialString),
-            let jsonString = String(data: base64Data, encoding: .utf8)
-        else { throw PolluxError.invalidJWTString }
-
-        guard let dataValue = jsonString.data(using: .utf8) else { throw PolluxError.invalidCredentialError }
+    /// Creates a `JWTCredential` by extracting and decoding the JWT payload.
+    ///
+    /// - Parameters:
+    ///   - jwtString: The JWT compact string containing the VC payload.
+    ///   - decoder: A `JSONDecoder` configured for JWT payloads (defaults to `.jwt`).
+    /// - Throws: An error if the payload cannot be extracted or decoded.
+    public init(jwtString: String, decoder: JSONDecoder = .jwt) throws {
         self.jwtString = jwtString
-        self.jwtVerifiableCredential = try JSONDecoder().decode(JWTPayload.self, from: dataValue)
-    }
-}
-
-extension JWTCredential: Codable {}
-
-extension JWTCredential: Credential {
-    public var id: String {
-        jwtString
-    }
-    
-    public var issuer: String {
-        jwtVerifiableCredential.iss.string
-    }
-    
-    public var subject: String? {
-        jwtVerifiableCredential.sub
-    }
-    
-    public var claims: [Claim] {
-        guard
-            let dic = jwtVerifiableCredential.verifiableCredential.credentialSubject.value as? [String: Any]
-        else {
-            return []
-        }
-        return dic.compactMap {
-            switch $1 {
-            case let value as Date:
-                Claim(key: $0, value: .date(value))
-            case let value as Data:
-                Claim(key: $0, value: .data(value))
-            case let value as Bool:
-                Claim(key: $0, value: .bool(value))
-            case let value as String:
-                Claim(key: $0, value: .string(value))
-            case let value as NSNumber:
-                Claim(key: $0, value: .number(value.doubleValue))
-            default:
-                nil
-            }
-        }
-    }
-    
-    public var properties: [String : Any] {
-        var properties = [
-            "nbf" : jwtVerifiableCredential.nbf,
-            "jti" : jwtVerifiableCredential.jti,
-            "type" : jwtVerifiableCredential.verifiableCredential.type,
-            "aud" : jwtVerifiableCredential.aud,
-            "id" : jwtString
-        ] as [String : Any]
-        
-        jwtVerifiableCredential.exp.map { properties["exp"] = $0 }
-        jwtVerifiableCredential.verifiableCredential.credentialSchema.map { properties["schema"] = $0.id }
-        jwtVerifiableCredential.verifiableCredential.credentialStatus.map { properties["credentialStatus"] = $0.type }
-        jwtVerifiableCredential.verifiableCredential.refreshService.map { properties["refreshService"] = $0.type }
-        jwtVerifiableCredential.verifiableCredential.evidence.map { properties["evidence"] = $0.type }
-        jwtVerifiableCredential.verifiableCredential.termsOfUse.map { properties["termsOfUse"] = $0.type }
-        
-        return properties
-    }
-    
-    public var credentialType: String { "JWT" }
-}
-
-extension JWTCredential {
-    func getJSON() throws -> Data {
-        var jwtParts = jwtString.components(separatedBy: ".")
-        jwtParts.removeFirst()
-        guard
-            let credentialString = jwtParts.first,
-            let base64Data = Data(fromBase64URL: credentialString),
-            let jsonString = String(data: base64Data, encoding: .utf8)
-        else { throw PolluxError.invalidJWTString }
-
-        guard let dataValue = jsonString.data(using: .utf8) else { throw PolluxError.invalidCredentialError }
-        return dataValue
+        self.defaultEnvelop = try decoder
+            .decode(
+                JWTEnvelopedVerifiableCredential<DefaultVerifiableCredential>.self,
+                from: JWT.getPayload(jwtString: jwtString)
+            )
     }
 
-    func getAlg() throws -> String {
-        let jwtParts = jwtString.components(separatedBy: ".")
-        guard
-            let headerString = jwtParts.first,
-            let base64Data = Data(fromBase64URL: headerString),
-            let alg = try JSONDecoder.didComm().decode(DefaultJWSHeaderImpl.self, from: base64Data).algorithm?.rawValue
-        else { throw PolluxError.couldNotFindCredentialAlgorithm }
+    /// Decodes the JWT payload into the requested credential type.
+    ///
+    /// Supply a concrete VC model (e.g., `DefaultVerifiableCredential`) or your own
+    /// strongly typed credential type.
+    ///
+    /// - Parameter decoder: A `JSONDecoder` configured for JWT payloads (defaults to `.jwt`).
+    /// - Returns: The decoded credential of type `T`.
+    /// - Throws: An error if decoding fails.
+    public func getCredential<T: Codable>(decoder: JSONDecoder = .jwt) throws -> T {
+        try decoder.decode(JWTEnvelopedVerifiableCredential<T>.self, from: try getPayload()).vc
+    }
 
-        return alg
+    /// Returns the raw JWT payload (claims) as JSON data without verification.
+    ///
+    /// Use this to perform custom decoding or cryptographic verification with your
+    /// own JOSE/COSE tooling.
+    ///
+    /// - Returns: The unverified payload bytes from the JWT.
+    /// - Throws: An error if the payload cannot be extracted.
+    public func getPayload() throws -> Data {
+        try JWT.getPayload(jwtString: jwtString)
     }
 }

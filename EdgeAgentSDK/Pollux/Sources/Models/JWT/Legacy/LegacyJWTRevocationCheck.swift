@@ -3,10 +3,10 @@ import Foundation
 import Gzip
 import JSONWebSignature
 
-struct JWTRevocationCheck {
-    let credential: JWTCredential
+struct LegacyJWTRevocationCheck {
+    let credential: LegacyJWTCredential
 
-    init(credential: JWTCredential) {
+    init(credential: LegacyJWTCredential) {
         self.credential = credential
     }
 
@@ -34,16 +34,6 @@ struct JWTRevocationCheck {
             throw UnknownError.somethingWentWrongError(customMessage: "Revocation index out of bounds", underlyingErrors: nil)
         }
         return bitList[index]
-    }
-}
-
-extension UInt8 {
-    func toBits() -> [Bool] {
-        var bits = [Bool](repeating: false, count: 8)
-        for i in 0..<8 {
-            bits[7 - i] = (self & (1 << i)) != 0
-        }
-        return bits
     }
 }
 

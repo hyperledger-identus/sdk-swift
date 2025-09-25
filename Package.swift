@@ -56,7 +56,7 @@ let package = Package(
             from: "1.4.4"
         ),
         .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.7.0"),
-        .package(url: "https://github.com/beatt83/didcomm-swift.git", from: "0.1.13"),
+        .package(url: "https://github.com/beatt83/didcomm-swift.git", from: "0.1.14"),
         .package(url: "https://github.com/beatt83/jose-swift.git", from: "6.0.0"),
         .package(url: "https://github.com/beatt83/peerdid-swift.git", from: "3.0.1"),
         .package(url: "https://github.com/input-output-hk/anoncreds-rs.git", exact: "0.4.1"),
@@ -64,8 +64,8 @@ let package = Package(
         .package(url: "https://github.com/KittyMac/Sextant.git", exact: "0.4.31"),
         .package(url: "https://github.com/kylef/JSONSchema.swift.git", exact: "0.6.0"),
         .package(url: "https://github.com/goncalo-frade-iohk/eudi-lib-sdjwt-swift.git", from: "0.0.3"),
-        .package(url: "https://github.com/1024jp/GzipSwift.git", exact: "6.0.0"),
-        .package(url: "https://github.com/goncalo-frade-iohk/eudi-lib-ios-openid4vci-swift.git", from: "0.10.0")
+        .package(url: "https://github.com/1024jp/GzipSwift.git", exact: "6.0.0")
+//        .package(url: "https://github.com/goncalo-frade-iohk/eudi-lib-ios-openid4vci-swift.git", from: "0.10.0")
     ],
     targets: [
         .target(
@@ -83,6 +83,9 @@ let package = Package(
         ),
         .target(
             name: "Domain",
+            dependencies: [
+                "Core"
+            ],
             path: "EdgeAgentSDK/Domain/Sources"
         ),
         .testTarget(
@@ -172,8 +175,8 @@ let package = Package(
             dependencies: [
                 "Domain",
                 "Builders",
-                "Core",
-                .product(name: "OpenID4VCI", package: "eudi-lib-ios-openid4vci-swift")
+                "Core"
+//                .product(name: "OpenID4VCI", package: "eudi-lib-ios-openid4vci-swift")
             ],
             path: "EdgeAgentSDK/EdgeAgent/Sources"
         ),
@@ -196,7 +199,6 @@ let package = Package(
         .target(
             name: "Core",
             dependencies: [
-                "Domain",
                 "jose-swift",
                 .product(name: "Logging", package: "swift-log")
             ],

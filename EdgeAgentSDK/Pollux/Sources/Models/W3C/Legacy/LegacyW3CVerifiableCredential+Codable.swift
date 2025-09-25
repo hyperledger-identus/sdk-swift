@@ -1,7 +1,8 @@
+import Core
 import Domain
 import Foundation
 
-extension W3CVerifiableCredential: Codable {
+extension LegacyW3CVerifiableCredential: Codable {
     enum CodingKeys: String, CodingKey {
         case context = "@context"
         case type = "@type"

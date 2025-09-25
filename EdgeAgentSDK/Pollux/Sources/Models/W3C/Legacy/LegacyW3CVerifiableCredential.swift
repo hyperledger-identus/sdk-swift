@@ -2,7 +2,7 @@ import Core
 import Domain
 import Foundation
 
-struct W3CVerifiableCredential {
+struct LegacyW3CVerifiableCredential {
     let context: Set<String>
     let type: Set<String>
     let id: String
@@ -11,7 +11,7 @@ struct W3CVerifiableCredential {
     let issuanceDate: Date
     let expirationDate: Date?
     let credentialSchema: VerifiableCredentialTypeContainer?
-    let credentialSubject: Domain.AnyCodable
+    let credentialSubject: AnyCodable
     let credentialStatus: VerifiableCredentialTypeContainer?
     let refreshService: VerifiableCredentialTypeContainer?
     let evidence: VerifiableCredentialTypeContainer?
@@ -30,7 +30,7 @@ struct W3CVerifiableCredential {
         issuanceDate: Date,
         expirationDate: Date? = nil,
         credentialSchema: VerifiableCredentialTypeContainer? = nil,
-        credentialSubject: Domain.AnyCodable,
+        credentialSubject: AnyCodable,
         credentialStatus: VerifiableCredentialTypeContainer? = nil,
         refreshService: VerifiableCredentialTypeContainer? = nil,
         evidence: VerifiableCredentialTypeContainer? = nil,
@@ -60,7 +60,7 @@ struct W3CVerifiableCredential {
     }
 }
 
-extension W3CVerifiableCredential: Credential {
+extension LegacyW3CVerifiableCredential: Credential {
     
     var issuer: String {
         self.issuerDID.string

@@ -16,7 +16,7 @@ public struct MercuryImpl {
         secretsStream: AnyPublisher<[Domain.Secret], Error>,
         castor: Castor
     ) {
-        let logger = SDKLogger(category: .mercury)
+        let logger = SDKLogger(category: LogComponent.mercury)
         self.logger = logger
         self.session = SessionManager(session: session, timeout: timeout)
         self.secretsStream = secretsStream

@@ -135,10 +135,3 @@ struct SDJWTPresentation {
         return CompactSerialiser(signedSDJWT: sdJwt).serialised
     }
 }
-
-private extension Domain.JWK {
-    func toJoseJWK() throws -> JSONWebKey.JWK {
-        let toJson = try JSONEncoder.jwt.encode(self)
-        return try JSONDecoder.jwt.decode(JSONWebKey.JWK.self, from: toJson)
-    }
-}

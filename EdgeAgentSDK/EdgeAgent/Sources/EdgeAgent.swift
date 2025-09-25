@@ -10,14 +10,15 @@ public class EdgeAgent {
     /// Represents the seed data used to create a unique DID.
     public let seed: Seed
 
-    let logger = SDKLogger(category: .edgeAgent)
+    let logger = SDKLogger(category: LogComponent.edgeAgent)
     public let apollo: Apollo & KeyRestoration
     public let castor: Castor
     public let pluto: Pluto
     public let pollux: Pollux & CredentialImporter
 
     public static func setupLogging(logLevels: [LogComponent: LogLevel]) {
-        SDKLogger.logLevels = logLevels
+        let mapped: [String: LogLevel] = Dictionary(uniqueKeysWithValues: logLevels.map { ($0.key.rawValue, $0.value) })
+        SDKLogger.logLevels = mapped
     }
 
     /// Initializes a EdgeAgent with the given dependency objects and seed data.

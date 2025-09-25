@@ -9,9 +9,9 @@ extension PolluxImpl: Pollux {
             case "sd-jwt+credential":
                 return try SDJWTCredential(sdjwtString: credentialData.tryToString())
             case "jwt+credential":
-                return try JSONDecoder().decode(JWTCredential.self, from: credentialData)
+                return try JSONDecoder().decode(LegacyJWTCredential.self, from: credentialData)
             case "w3c+credential":
-                return try JSONDecoder().decode(W3CVerifiableCredential.self, from: credentialData)
+                return try JSONDecoder().decode(LegacyW3CVerifiableCredential.self, from: credentialData)
             case "anon+credential":
                 return try JSONDecoder().decode(AnoncredsCredentialStack.self, from: credentialData)
             default:
