@@ -45,9 +45,9 @@ struct CreatePrismDIDOperation {
         didData.publicKeys = try publicKeys.map { try $0.toProto() }
         didData.services = services.map {
             var service = Io_Iohk_Atala_Prism_Protos_Service()
-            service.id = $0.id
-            service.type = $0.type.first ?? ""
-            service.serviceEndpoint = $0.serviceEndpoint.map { $0.uri }
+            service.id = $0.id ?? ""
+            service.type = $0.type.array.first ?? ""
+            service.serviceEndpoint = $0.serviceEndpoint.array.map { $0.uri }
             return service
         }
 

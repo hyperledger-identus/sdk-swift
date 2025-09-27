@@ -39,10 +39,10 @@ extension DIDCore.DIDDocument {
         let keyAgreementIds = from.keyAgreement.map(\.id.string)
 
         let services = from.services.flatMap { service in
-            service.serviceEndpoint.map {
+            service.serviceEndpoint.array.map {
                 DIDCore.DIDDocument.Service(
-                    id: service.id,
-                    type: service.type.first ?? "",
+                    id: service.id ?? "",
+                    type: service.type.array.first ?? "",
                     serviceEndpoint: AnyCodable(
                         dictionaryLiteral:
                             ("uri", $0.uri),
@@ -108,26 +108,26 @@ extension DIDCore.DIDDocument {
                 }
                 return Domain.DIDDocument.Service(
                     id: service.id,
-                    type: [service.type],
-                    serviceEndpoint: [
+                    type: .one(service.type),
+                    serviceEndpoint: .one(
                         .init(
                             uri: uri,
                             accept: endpoint["accept"] as? [String] ?? [],
                             routingKeys: endpoint["routing_keys"] as? [String] ?? []
                         )
-                    ]
+                    )
                 )
             case let endpoint as String:
                 return Domain.DIDDocument.Service(
                     id: service.id,
-                    type: [service.type],
-                    serviceEndpoint: [
+                    type: .one(service.type),
+                    serviceEndpoint: .one(
                         .init(
                             uri: endpoint,
                             accept: ($0.value as? [String: Any])?["accept"] as? [String] ?? [],
                             routingKeys: ($0.value as? [String: Any])?["routing_keys"] as? [String] ?? []
                         )
-                    ]
+                    )
                 )
             default:
                 throw CastorError.notPossibleToResolveDID(did: service.id, reason: "Invalid service")

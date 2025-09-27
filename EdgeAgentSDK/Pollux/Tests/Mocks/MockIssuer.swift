@@ -114,19 +114,11 @@ struct MockIssuer {
         )
     }
 
-    func createPresentationRequest() throws -> (message: Message, requestStr: String) {
+    func createPresentationRequest() throws -> (request: Data, requestStr: String) {
         let presentation = """
 {"nonce":"1103253414365527824079144","name":"proof_req_1","version":"0.1","requested_attributes":{"sex":{"name":"sex", "restrictions":{"attr::sex::value":"M","cred_def_id":"mock:uri3"}}},"requested_predicates":{"age":{"name":"age", "p_type":">=", "p_value":18}}}
 """
-        return (Message(
-            piuri: "",
-            body: Data(),
-            attachments: [
-                .init(
-                    data: AttachmentBase64(base64: try presentation.tryData(using: .utf8).base64EncodedString())
-                )
-            ]
-        ), presentation)
+        return (try presentation.tryData(using: .utf8), presentation)
     }
 
     func getSchemaJson() -> String {

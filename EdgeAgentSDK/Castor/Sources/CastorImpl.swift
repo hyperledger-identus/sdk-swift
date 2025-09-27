@@ -11,7 +11,10 @@ public struct CastorImpl {
         self.logger = SDKLogger(category: LogComponent.castor)
         self.apollo = apollo
         self.resolvers = resolvers + [
-            LongFormPrismDIDResolver(apollo: apollo, logger: logger),
+            CompactPrismDIDResolver(
+                longFormResolver: LongFormPrismDIDResolver(apollo: apollo, logger: logger),
+                shortFormResolver: EndpointShortFormPrismDIDRemoteResolver.githubResolver()
+            ),
             PeerDIDResolver()
         ]
     }

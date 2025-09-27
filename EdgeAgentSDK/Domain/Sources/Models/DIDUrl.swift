@@ -2,7 +2,7 @@ import Foundation
 
 /// Represents a DIDUrl with "did", "path", "parameters", "fragment"
 /// As specified in [w3 standards](`https://www.w3.org/TR/did-core/#dfn-did-urls`)
-public struct DIDUrl {
+public struct DIDUrl: Hashable, Equatable, Codable {
     /// The associated Decentralized Identifier (DID).
     public let did: DID
 
@@ -83,6 +83,17 @@ public struct DIDUrl {
         } else {
             self.fragment = nil
         }
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let string = try container.decode(String.self)
+        try self.init(string: string)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(string)
     }
 
     /// A string representation of this `DIDUrl`.

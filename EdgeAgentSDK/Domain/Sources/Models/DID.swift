@@ -8,7 +8,7 @@ public typealias DIDMethodId = String
 
 /// A DID is a unique and persistent identifier for a subject or object, such as a person, organization, or device. It is created and managed using a specific DID method, and consists of a schema, method, and method ID. The schema indicates the type of DID (e.g. "did"), the method indicates the specific protocol or process used to resolve and manage the DID (e.g. "prism"), and the method ID is a unique identifier within the DID method.
 /// As specified in the [W3C DID standards](https://www.w3.org/TR/did-core/#dfn-did-schemes).
-public struct DID: Equatable {
+public struct DID: Hashable, Equatable, Codable {
     /// The schema of the DID (e.g. "did")
     public let schema: String
 
@@ -31,6 +31,17 @@ public struct DID: Equatable {
         self.schema = schema
         self.method = method
         self.methodId = methodId
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let string = try container.decode(String.self)
+        try self.init(string: string)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(string)
     }
 
     /// String representation of this DID as specified in [w3 standards](https://www.w3.org/TR/did-core/#dfn-did-schemes)

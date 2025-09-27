@@ -14,7 +14,7 @@ public struct DownloadDataWithResolver: Downloader {
         if let did = try? castor.parseDID(str: urlOrDID) {
             let document = try await castor.resolveDID(did: did)
             guard 
-                let urlStr = document.services.first?.serviceEndpoint.first?.uri,
+                let urlStr = document.services.first?.serviceEndpoint.array.first?.uri,
                 let validUrl = URL(string: urlStr)
             else {
                 throw CommonError.invalidURLError(url: "Could not find any URL on DID")

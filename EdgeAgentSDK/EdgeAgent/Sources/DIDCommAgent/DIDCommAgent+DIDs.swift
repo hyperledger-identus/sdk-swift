@@ -68,10 +68,10 @@ public extension DIDCommAgent {
         if updateMediator, let routingDID = mediatorRoutingDID?.string {
             withServices = services + [.init(
                 id: "#didcomm-1",
-                type: ["DIDCommMessaging"],
-                serviceEndpoint: [.init(
+                type: .one("DIDCommMessaging"),
+                serviceEndpoint: .one(.init(
                     uri: routingDID
-                )])]
+                )))]
         } else {
             withServices = services
         }

@@ -25,8 +25,8 @@ public struct AuthenticateChallenged {
             masterPublicKey: publicKey,
             services: [.init(
                 id: "deeplink",
-                type: ["deeplink"],
-                serviceEndpoint: [.init(uri: scheme.scheme + "://" + scheme.host)]
+                type: .one("deeplink"),
+                serviceEndpoint: .one(.init(uri: scheme.scheme + "://" + scheme.host))
             )]
         )
     }
@@ -65,8 +65,8 @@ public struct AuthenticateChallenged {
         let didDocument = try await castor.resolveDID(did: did)
 
         guard let service = didDocument.services
-            .first(where: { $0.type.contains(where: { $0 == "deeplink" }) })?
-            .serviceEndpoint.first?.uri
+            .first(where: { $0.type.array.contains(where: { $0 == "deeplink" }) })?
+            .serviceEndpoint.array.first?.uri
         else { throw AuthenticateError.cannotFindDeepLinkServiceError }
 
         guard
