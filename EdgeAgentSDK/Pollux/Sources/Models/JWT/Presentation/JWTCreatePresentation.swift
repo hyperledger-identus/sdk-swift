@@ -7,35 +7,7 @@ import JSONWebSignature
 import JSONWebToken
 import Sextant
 
-struct VerifiablePresentationPayload: JWTRegisteredFieldsClaims {
-    
-    struct VerifiablePresentation: Codable {
-        enum CodingKeys: String, CodingKey {
-            case context = "@context"
-            case type = "@type"
-            case verifiableCredential
-        }
-
-        let context: Set<String>
-        let type: Set<String>
-        let verifiableCredential: [String]
-    }
-
-    let iss: String?
-    let sub: String?
-    let aud: [String]?
-    let exp: Date?
-    let nbf: Date?
-    let iat: Date?
-    let jti: String?
-    let nonce: String
-    let vp: [VerifiablePresentation]
-    
-    func validateExtraClaims() throws {}
-}
-
-struct JWTPresentation {
-    
+struct JWTCreatePresentation {
     func createPresentation(
         credential: JWTCredential,
         type: String,
@@ -51,7 +23,7 @@ struct JWTPresentation {
         else {
             throw PolluxError.invalidPrismDID
         }
-        
+
         guard
             let exportableKeysOption = options.first(where: {
                 if case .exportableKeys = $0 { return true }
@@ -97,14 +69,14 @@ struct JWTPresentation {
     ) throws -> String {
         let presentationRequest = try JSONDecoder.didComm().decode(PresentationExchangeRequest.self, from: request)
 
-        guard 
+        guard
             let jwtFormat = presentationRequest.presentationDefinition.format?.jwt,
             try jwtFormat.supportedTypes.contains(where: { try $0 == credential.getAlg() })
         else {
             throw PolluxError.credentialIsNotOfPresentationDefinitionRequiredAlgorithm
         }
 
-        let credentialSubject = try JSONEncoder().encode(credential.jwtVerifiableCredential)
+        let credentialSubject = try JSONEncoder().encode(credential.defaultEnvelop.vc)
 
         try presentationRequest.presentationDefinition.inputDescriptors.forEach {
             try $0.constraints.fields.forEach {
@@ -154,32 +126,31 @@ struct JWTPresentation {
         credential: JWTCredential,
         request: Data,
         did: DID
-    ) throws -> ClaimsProofPresentationJWT {
+    ) throws -> JWTEnvelopedVerifiablePresentation<VerifiablePresentation<EnvelopedVerfiablePresentation>> {
         let jsonObject = try JSONSerialization.jsonObject(with: request)
         guard
             let domain = findValue(forKey: "domain", in: jsonObject),
             let challenge = findValue(forKey: "challenge", in: jsonObject)
         else { throw PolluxError.offerDoesntProvideEnoughInformation }
 
-        return ClaimsProofPresentationJWT(
+        return JWTEnvelopedVerifiablePresentation(
             iss: did.string,
-            sub: nil,
             aud: [domain],
-            exp: nil,
-            nbf: nil,
-            iat: nil,
-            jti: nil,
             nonce: challenge,
-            vp: .init(
-                context: .init(["https://www.w3.org/2018/presentations/v1"]),
-                type: .init(["VerifiablePresentation"]),
-                verifiableCredential: [credential.jwtString]
+            vp: VerifiablePresentation(
+                context: .one(W3CRegisteredConstants.verifiableCredential2_0Context),
+                type: .one(W3CRegisteredConstants.verifiablePresentationType),
+                verifiableCredential: EnvelopedVerfiablePresentation(
+                    context: .one(W3CRegisteredConstants.verifiableCredential2_0Context),
+                    id: "data:application/vc+jwt,\(credential.jwtString)",
+                    type: .one(W3CRegisteredConstants.envelopedVerifiableCredentialType)
+                )
             )
         )
     }
 
     private func vcPresentationJWTString(
-        payload: ClaimsProofPresentationJWT,
+        payload: JWTEnvelopedVerifiablePresentation<VerifiablePresentation<EnvelopedVerfiablePresentation>>,
         exportableKey: ExportableKey
     ) throws -> String {
         let keyJWK = exportableKey.jwk
@@ -207,36 +178,19 @@ struct JWTPresentation {
     }
 }
 
-struct ClaimsProofPresentationJWT: JWTRegisteredFieldsClaims, Codable {
-    struct VerifiablePresentation: Codable {
-        enum CodingKeys: String, CodingKey {
-            case context = "@context"
-            case type = "type"
-            case verifiableCredential
-        }
-
-        let context: Set<String>
-        let type: Set<String>
-        let verifiableCredential: [String]
+extension JWTCredential {
+    func getJSON() throws -> Data {
+        return try JWT.getPayload(jwtString: jwtString)
     }
 
-    let iss: String?
-    let sub: String?
-    let aud: [String]?
-    let exp: Date?
-    let nbf: Date?
-    let iat: Date?
-    let jti: String?
-    let nonce: String
-    let vp: VerifiablePresentation
-    
-    func validateExtraClaims() throws {}
-}
+    func getAlg() throws -> String {
+        let jwtParts = jwtString.components(separatedBy: ".")
+        guard
+            let headerString = jwtParts.first,
+            let base64Data = Data(fromBase64URL: headerString),
+            let alg = try JSONDecoder.didComm().decode(DefaultJWSHeaderImpl.self, from: base64Data).algorithm?.rawValue
+        else { throw PolluxError.couldNotFindCredentialAlgorithm }
 
-private func extractRS(from signature: Data) -> (r: Data, s: Data) {
-    let rIndex = signature.startIndex
-    let sIndex = signature.index(rIndex, offsetBy: 32)
-    let r = signature[rIndex..<sIndex]
-    let s = signature[sIndex..<signature.endIndex]
-    return (r, s)
+        return alg
+    }
 }

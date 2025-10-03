@@ -7,8 +7,8 @@ struct SDJWTClaimVerifier: PresentationExchangeClaimVerifier {
     let submissionDescriptor: PresentationSubmission.Descriptor
 
     func verifyClaim(inputDescriptor: InputDescriptor) throws {
-        let payload = try CompactParser(serialisedString: sdjwtString)
-            .getSignedSdJwt()
+        let payload = try CompactParser()
+            .getSignedSdJwt(serialisedString: sdjwtString)
             .recreateClaims()
             .recreatedClaims
             .rawData()

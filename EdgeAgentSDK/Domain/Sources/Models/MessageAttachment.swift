@@ -1,3 +1,4 @@
+import Core
 import Foundation
 
 /// The `AttachmentData` protocol represents a generic attachment for a DIDComm `Message`. Any type that conforms to `AttachmentData` can be used as an attachment.

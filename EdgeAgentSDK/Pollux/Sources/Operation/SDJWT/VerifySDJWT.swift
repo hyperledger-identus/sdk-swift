@@ -37,7 +37,7 @@ struct VerifySDJWT {
     }
 
     private func verifyForKeySDJWT(sdjwtString: String, key: JSONWebKey.JWK) throws -> Bool {
-        let result = try SDJWTVerifier(parser: CompactParser(serialisedString: sdjwtString))
+        let result = try SDJWTVerifier(parser: CompactParser(), serialisedString: sdjwtString)
             .verifyPresentation { jws in
                 try SignatureVerifier(signedJWT: jws, publicKey: key)
             }

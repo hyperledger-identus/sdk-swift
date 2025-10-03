@@ -2,7 +2,7 @@ import Domain
 import Foundation
 
 extension SDJWTCredential: ProvableCredential {
-    func presentation(request: Domain.Message, options: [Domain.CredentialOperationsOptions]) throws -> String {
+    func presentation(request: Domain.Message, options: [Domain.CredentialOperationsOptions]) async throws -> String {
         guard
             let attachment = request.attachments.first,
             let format = attachment.format,
@@ -19,7 +19,7 @@ extension SDJWTCredential: ProvableCredential {
         else {
             throw PolluxError.offerDoesntProvideEnoughInformation
         }
-        return try SDJWTPresentation().createPresentation(
+        return try await SDJWTPresentation().createPresentation(
             credential: self,
             type: format,
             requestData: requestData,
@@ -31,8 +31,8 @@ extension SDJWTCredential: ProvableCredential {
         type: String,
         requestPayload: Data,
         options: [CredentialOperationsOptions]
-    ) throws -> String {
-        try SDJWTPresentation().createPresentation(
+    ) async throws -> String {
+        try await SDJWTPresentation().createPresentation(
             credential: self,
             type: type,
             requestData: requestPayload,

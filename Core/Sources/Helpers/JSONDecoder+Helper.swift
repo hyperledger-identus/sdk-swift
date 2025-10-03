@@ -20,4 +20,10 @@ public extension JSONDecoder {
         })
         return decoder
     }
+
+    static var normalized: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
+    }
 }

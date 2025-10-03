@@ -1,7 +1,7 @@
 import Domain
 import Foundation
 
-extension JWTCredential: ExportableCredential {
+extension LegacyJWTCredential: ExportableCredential {
     public var exporting: Data {
         (try? jwtString.tryToData()) ?? Data()
     }

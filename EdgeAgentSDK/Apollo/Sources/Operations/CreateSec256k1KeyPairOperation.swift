@@ -6,7 +6,7 @@ import Foundation
 struct CreateSec256k1KeyPairOperation {
     let logger: SDKLogger
 
-    init(logger: SDKLogger = SDKLogger(category: .apollo)) {
+    init(logger: SDKLogger = SDKLogger(category: LogComponent.apollo)) {
         self.logger = logger
     }
 

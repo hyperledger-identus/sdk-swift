@@ -11,11 +11,17 @@ extension PolluxImpl {
         case "jwt", "", "prism/jwt", .none:
             switch issuedAttachment.data {
             case let json as AttachmentJsonData:
-                return try ParseJWTCredentialFromMessage.parse(
-                    issuerCredentialData: try JSONEncoder.didComm().encode(json.json)
-                )
+                let jwtString = try JSONEncoder.didComm().encode(json.json).toString()
+                guard let credential = try? JWTCredential(jwtString: jwtString) else {
+                    return try LegacyJWTCredential(jwtString: jwtString)
+                }
+                return credential
             case let base64 as AttachmentBase64:
-                return try ParseJWTCredentialFromMessage.parse(issuerCredentialData: try base64.decoded())
+                let jwtString = try base64.decoded().toString()
+                guard let credential = try? JWTCredential(jwtString: jwtString) else {
+                    return try LegacyJWTCredential(jwtString: jwtString)
+                }
+                return credential
             default:
                 throw PolluxError.unsupportedIssuedMessage
             }
@@ -92,7 +98,11 @@ extension PolluxImpl {
     public func parseCredential(type: String, credentialPayload: Data, options: [CredentialOperationsOptions]) async throws -> Credential {
         switch type {
         case "jwt", "prism/jwt":
-            return try ParseJWTCredentialFromMessage.parse(issuerCredentialData: credentialPayload)
+            let jwtString = try credentialPayload.toString()
+            guard let credential = try? JWTCredential(jwtString: jwtString) else {
+                return try LegacyJWTCredential(jwtString: jwtString)
+            }
+            return credential
         case "vc+sd-jwt":
             return try SDJWTCredential(sdjwtString: credentialPayload.tryToString())
         case "anoncreds", "prism/anoncreds", "anoncreds/credential@v1.0":

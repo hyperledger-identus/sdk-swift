@@ -7,7 +7,7 @@ public struct AnyCodable {
         self.value = value
     }
 
-    init(_ value: Any) {
+    public init(value: Any) {
         self.value = value
     }
 
@@ -25,7 +25,7 @@ extension AnyCodable: Codable {
         let container = try decoder.singleValueContainer()
 
         if container.decodeNil() {
-            self.init(())
+            self.init(value:())
         } else if let bool = try? container.decode(Bool.self) {
             self.init(bool)
         } else if let int = try? container.decode(Int.self) {
@@ -37,9 +37,9 @@ extension AnyCodable: Codable {
         } else if let string = try? container.decode(String.self) {
             self.init(string)
         } else if let array = try? container.decode([AnyCodable].self) {
-            self.init(array.map { $0.value })
+            self.init(value: array.map { $0.value })
         } else if let dictionary = try? container.decode([String: AnyCodable].self) {
-            self.init(dictionary.mapValues { $0.value })
+            self.init(value: dictionary.mapValues { $0.value })
         } else {
             throw DecodingError.dataCorruptedError(
                 in: container,
@@ -52,6 +52,8 @@ extension AnyCodable: Codable {
         var container = encoder.singleValueContainer()
 
         switch self.value {
+        case is NSNull:
+            try container.encodeNil()
         case is Void:
             try container.encodeNil()
         case let bool as Bool:
@@ -87,9 +89,9 @@ extension AnyCodable: Codable {
         case let url as URL:
             try container.encode(url)
         case let array as [Any]:
-            try container.encode(array.map { AnyCodable($0) })
+            try container.encode(array.map { AnyCodable(value: $0) })
         case let dictionary as [String: Any]:
-            try container.encode(dictionary.mapValues { AnyCodable($0) })
+            try container.encode(dictionary.mapValues { AnyCodable(value: $0) })
         default:
             let context = EncodingError.Context(
                 codingPath: container.codingPath,
@@ -170,34 +172,34 @@ extension AnyCodable: CustomDebugStringConvertible {
 extension AnyCodable: ExpressibleByNilLiteral, ExpressibleByBooleanLiteral, ExpressibleByIntegerLiteral, ExpressibleByFloatLiteral, ExpressibleByStringLiteral, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
 
     public init(nilLiteral: ()) {
-        self.init(nil ?? ())
+        self.init(value: nil ?? ())
     }
 
     public init(booleanLiteral value: Bool) {
-        self.init(value)
+        self.init(value: value)
     }
 
     public init(integerLiteral value: Int) {
-        self.init(value)
+        self.init(value: value)
     }
 
     public init(floatLiteral value: Double) {
-        self.init(value)
+        self.init(value: value)
     }
 
     public init(extendedGraphemeClusterLiteral value: String) {
-        self.init(value)
+        self.init(value: value)
     }
 
     public init(stringLiteral value: String) {
-        self.init(value)
+        self.init(value: value)
     }
 
     public init(arrayLiteral elements: Any...) {
-        self.init(elements)
+        self.init(value: elements)
     }
 
     public init(dictionaryLiteral elements: (AnyHashable, Any)...) {
-        self.init(Dictionary<AnyHashable, Any>(elements, uniquingKeysWith: { (first, _) in first }))
+        self.init(value: Dictionary<AnyHashable, Any>(elements, uniquingKeysWith: { (first, _) in first }))
     }
 }

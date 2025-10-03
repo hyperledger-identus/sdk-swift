@@ -1,6 +1,6 @@
 import Foundation
 
-struct JWTRevocationStatus: Codable {
+struct LegacyJWTRevocationStatus: Codable {
     enum CredentialStatusListType: String, Codable {
         case statusList2021Entry = "StatusList2021Entry"
     }

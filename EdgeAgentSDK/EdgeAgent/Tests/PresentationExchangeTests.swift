@@ -35,7 +35,7 @@ final class PresentationExchangeFlowTests: XCTestCase {
         let subjectDID = try await edgeAgent.createNewPrismDID()
 
         let jwt = try await makeCredentialJWT(issuerDID: prismDID, subjectDID: subjectDID)
-        let credential = try JWTCredential(data: jwt.tryToData())
+        let credential = try LegacyJWTCredential(data: jwt.tryToData())
 
         logger.info("Creating presentation request")
         let message = try edgeAgent.initiatePresentationRequest(
@@ -87,7 +87,7 @@ final class PresentationExchangeFlowTests: XCTestCase {
         let subjectDID = try await edgeAgent.createNewPrismDID()
 
         let jwt = try await makeCredentialJWT(issuerDID: prismDID, subjectDID: subjectDID)
-        let credential = try JWTCredential(data: jwt.tryToData())
+        let credential = try LegacyJWTCredential(data: jwt.tryToData())
 
         do {
             _ = try await edgeAgent.createPresentationForRequestProof(
@@ -190,7 +190,7 @@ final class PresentationExchangeFlowTests: XCTestCase {
             fatalError()
         }
 
-        let sdjwt = try SDJWTIssuer.issue(
+        let sdjwt = try await SDJWTIssuer.issue(
             issuersPrivateKey: try jwkD.toJoseJWK(),
             header: DefaultJWSHeaderImpl(algorithm: .ES256K)
         ) {

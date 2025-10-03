@@ -2,7 +2,7 @@ import CommonCrypto
 import Foundation
 
 extension Data {
-    func sha256() -> String {
+    func sha256String() -> String {
         return hexStringFromData(input: digest(input: self as NSData))
     }
 
@@ -29,7 +29,7 @@ extension Data {
 extension String {
     func sha256() -> String {
         if let stringData = data(using: String.Encoding.utf8) {
-            return stringData.sha256()
+            return stringData.sha256String()
         }
         return ""
     }

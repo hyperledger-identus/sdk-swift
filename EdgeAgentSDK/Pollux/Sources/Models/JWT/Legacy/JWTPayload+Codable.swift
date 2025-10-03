@@ -1,3 +1,4 @@
+import Core
 import Domain
 import Foundation
 
@@ -40,7 +41,7 @@ extension JWTPayload.JWTVerfiableCredential: Codable {
         }
         let credentialSubject = try container.decode(AnyCodable.self, forKey: .credentialSubject)
         let credentialStatus = try? container.decode(
-            JWTRevocationStatus.self,
+            LegacyJWTRevocationStatus.self,
             forKey: .credentialStatus
         )
         let credentialSchema = try? container.decode(

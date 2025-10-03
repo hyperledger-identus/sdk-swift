@@ -20,4 +20,11 @@ public extension JSONEncoder {
         encoder.outputFormatting = [.withoutEscapingSlashes, .sortedKeys]
         return encoder
     }
+
+    static var normalized: JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.withoutEscapingSlashes, .sortedKeys]
+        return encoder
+    }
 }

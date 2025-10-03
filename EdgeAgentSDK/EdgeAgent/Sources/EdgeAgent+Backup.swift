@@ -85,7 +85,7 @@ extension EdgeAgent {
             keyManagementAlg: .ecdhESA256KW,
             encryptionAlgorithm: .a256CBCHS512,
             recipientKey: try JSONDecoder().decode(JSONWebKey.JWK.self, from: jwk)
-        ).compactSerialization()
+        ).compactSerialization
 
         return jwe
     }

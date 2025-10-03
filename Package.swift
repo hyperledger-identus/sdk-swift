@@ -1,11 +1,11 @@
-// swift-tools-version: 5.7
+// swift-tools-version: 5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
 let package = Package(
     name: "EdgeAgentSDK",
-    platforms: [.iOS(.v15), .macOS(.v13)],
+    platforms: [.iOS(.v15), .macOS(.v14)],
     products: [
         .library(
             name: "Domain",
@@ -56,16 +56,16 @@ let package = Package(
             from: "1.4.4"
         ),
         .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.7.0"),
-        .package(url: "https://github.com/beatt83/didcomm-swift.git", from: "0.1.10"),
-        .package(url: "https://github.com/beatt83/jose-swift.git", from: "3.3.1"),
+        .package(url: "https://github.com/beatt83/didcomm-swift.git", from: "0.1.14"),
+        .package(url: "https://github.com/beatt83/jose-swift.git", from: "6.0.0"),
         .package(url: "https://github.com/beatt83/peerdid-swift.git", from: "3.0.1"),
         .package(url: "https://github.com/input-output-hk/anoncreds-rs.git", exact: "0.4.1"),
-        .package(url: "https://github.com/hyperledger/identus-apollo.git", exact: "1.4.2"),
+        .package(url: "https://github.com/hyperledger/identus-apollo.git", exact: "1.8.0"),
         .package(url: "https://github.com/KittyMac/Sextant.git", exact: "0.4.31"),
         .package(url: "https://github.com/kylef/JSONSchema.swift.git", exact: "0.6.0"),
-        .package(url: "https://github.com/eu-digital-identity-wallet/eudi-lib-sdjwt-swift.git", from: "0.1.0"),
-        .package(url: "https://github.com/1024jp/GzipSwift.git", exact: "6.0.0"),
-        .package(url: "https://github.com/goncalo-frade-iohk/eudi-lib-ios-openid4vci-swift.git", from: "0.9.0")
+        .package(url: "https://github.com/goncalo-frade-iohk/eudi-lib-sdjwt-swift.git", from: "0.0.3"),
+        .package(url: "https://github.com/1024jp/GzipSwift.git", exact: "6.0.0")
+//        .package(url: "https://github.com/goncalo-frade-iohk/eudi-lib-ios-openid4vci-swift.git", from: "0.10.0")
     ],
     targets: [
         .target(
@@ -83,6 +83,9 @@ let package = Package(
         ),
         .target(
             name: "Domain",
+            dependencies: [
+                "Core"
+            ],
             path: "EdgeAgentSDK/Domain/Sources"
         ),
         .testTarget(
@@ -172,8 +175,8 @@ let package = Package(
             dependencies: [
                 "Domain",
                 "Builders",
-                "Core",
-                .product(name: "OpenID4VCI", package: "eudi-lib-ios-openid4vci-swift")
+                "Core"
+//                .product(name: "OpenID4VCI", package: "eudi-lib-ios-openid4vci-swift")
             ],
             path: "EdgeAgentSDK/EdgeAgent/Sources"
         ),
@@ -196,7 +199,6 @@ let package = Package(
         .target(
             name: "Core",
             dependencies: [
-                "Domain",
                 "jose-swift",
                 .product(name: "Logging", package: "swift-log")
             ],

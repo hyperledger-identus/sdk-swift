@@ -8,7 +8,7 @@ public struct CastorImpl {
     let logger: SDKLogger
 
     public init(apollo: Apollo, resolvers: [DIDResolverDomain] = []) {
-        self.logger = SDKLogger(category: .castor)
+        self.logger = SDKLogger(category: LogComponent.castor)
         self.apollo = apollo
         self.resolvers = resolvers + [
             LongFormPrismDIDResolver(apollo: apollo, logger: logger),

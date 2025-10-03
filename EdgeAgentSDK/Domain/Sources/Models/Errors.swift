@@ -826,6 +826,10 @@ public enum PolluxError: KnownPrismError {
     /// - Parameter jwtString: The JWT string representing the suspended credential.
     case credentialIsSuspended(jwtString: String)
 
+    /// An error case indicating that the credential status type is not supported.
+    /// - Parameter message: In-dept description of the error.
+    case unsupportedCredentialStatusType(message: String)
+
     /// The error code returned by the server.
     public var code: Int {
         switch self {
@@ -889,6 +893,8 @@ public enum PolluxError: KnownPrismError {
             return 79
         case .cannotVerifyCredential:
             return 80
+        case .unsupportedCredentialStatusType:
+            return 81
         }
     }
 
@@ -981,6 +987,8 @@ Cannot verify input descriptor field \(name.map { "with name: \($0)"} ?? ""), wi
 """
 Cannot verify credential: \(credential.map { "with name: \($0)"} ?? ""), with errors: \n \(errors)
 """
+        case .unsupportedCredentialStatusType(let message):
+            return "Could not verify credential status: \(message)"
         }
     }
 }

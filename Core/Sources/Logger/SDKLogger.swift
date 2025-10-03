@@ -1,6 +1,5 @@
 import Combine
 import CryptoKit
-import Domain
 import Foundation
 import Logging
 
@@ -42,8 +41,36 @@ private let METADATA_PRIVACY_STR = "------"
 
 // MARK: Prism Logger
 
-public struct SDKLogger {
-    public static var logLevels = [LogComponent: LogLevel]()
+/// The log level.
+///
+/// Log levels are ordered by their severity, with `.debug` being the least severe and
+/// `.error` being the most severe. You can also pick `.none` for no logging.
+/// `.info` is the default log level
+public enum LogLevel: Int {
+    /// Appropriate for messages that contain information normally of use only when
+    /// debugging a program.
+    case debug
+
+    /// Appropriate for informational messages.
+    case info
+
+    /// Appropriate for conditions that are not error conditions, but that may require
+    /// special handling.
+    case notice
+
+    /// Appropriate for messages that are not error conditions, but more severe than
+    /// `.notice`.
+    case warning
+
+    /// Appropriate for error conditions.
+    case error
+
+    /// For no logging
+    case none
+}
+
+public struct SDKLogger{
+    public static var logLevels = [String: LogLevel]()
     private static let hashingLog = UUID().uuidString
     private let logLevel: LogLevel
 
@@ -102,10 +129,17 @@ public struct SDKLogger {
 
     private let logger: Logger
 
-    public init(category: LogComponent, handler: ((String) -> LogHandler)? = nil) {
+    public init<
+        LogComponent: RawRepresentable & Hashable
+    >(
+        category: LogComponent,
+        handler: ((String) -> LogHandler)? = nil
+    ) where LogComponent.RawValue == String {
         handler.map { LoggingSystem.bootstrap($0) }
-        var logger = Logger(label: "[ io.prism.swift.sdk.\(category) ]")
-        logLevel = SDKLogger.logLevels.first { $0.key == category }?.value ?? .info
+        var logger = Logger(label: "[ io.prism.swift.sdk.\(category.rawValue) ]")
+        logLevel = SDKLogger.logLevels.first {
+            $0.key == category.rawValue
+        }?.value ?? .info
         logger.logLevel = logLevel.getLoggerLevel()
         self.logger = logger
     }

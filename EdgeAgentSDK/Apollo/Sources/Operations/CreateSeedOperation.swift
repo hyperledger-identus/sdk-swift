@@ -9,7 +9,7 @@ struct CreateSeedOperation {
     let passphrase: String
 
     init(
-        logger: SDKLogger = .init(category: .apollo),
+        logger: SDKLogger = .init(category: LogComponent.apollo),
         words: [String],
         passphrase: String = ""
     ) throws {

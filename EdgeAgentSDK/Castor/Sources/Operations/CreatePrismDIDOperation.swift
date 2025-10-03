@@ -61,7 +61,7 @@ struct CreatePrismDIDOperation {
         atalaOperation: Io_Iohk_Atala_Prism_Protos_AtalaOperation
     ) throws -> DID {
         let encodedState = try atalaOperation.serializedData()
-        let stateHash = encodedState.sha256()
+        let stateHash = encodedState.sha256String()
         let base64State = encodedState.base64UrlEncodedString()
         let methodSpecificId = try PrismDIDMethodId(
             sections: [

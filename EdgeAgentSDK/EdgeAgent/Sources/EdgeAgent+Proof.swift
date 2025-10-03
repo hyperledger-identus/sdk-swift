@@ -27,6 +27,21 @@ public extension EdgeAgent {
         }
         let presentationString: String
         let format: String
+        guard
+            let attachment = request.attachments.first,
+            let requestData = try request.attachments.first.flatMap({
+                switch $0.data {
+                case let json as AttachmentJsonData:
+                    return try JSONEncoder.didComm().encode(json.json)
+                case let bas64 as AttachmentBase64:
+                    return Data(fromBase64URL: bas64.base64)
+                default:
+                    return nil
+                }
+            })
+        else {
+            throw PolluxError.offerDoesntProvideEnoughInformation
+        }
         switch requestType {
         case "anoncreds/proof-request@v1.0":
             guard
@@ -38,8 +53,9 @@ public extension EdgeAgent {
                 let linkSecretString = String(data: restored.raw, encoding: .utf8)
             else { throw EdgeAgentError.cannotFindDIDKeyPairIndex }
             format = "anoncreds/proof@v1.0"
-            presentationString = try proofableCredential.presentation(
-                request: request.makeMessage(),
+            presentationString = try await proofableCredential.presentation(
+                type: format,
+                requestPayload: requestData,
                 options: [
                     .linkSecret(id: "", secret: linkSecretString)
                 ]
@@ -64,8 +80,9 @@ public extension EdgeAgent {
 
             format = requestType == "prism/jwt" ? "prism/jwt" : "dif/presentation-exchange/submission@v1.0"
 
-            presentationString = try proofableCredential.presentation(
-                request: request.makeMessage(),
+            presentationString = try await proofableCredential.presentation(
+                type: format,
+                requestPayload: requestData,
                 options: [
                     .exportableKeys(exporting),
                     .subjectDID(subjectDID),
@@ -76,7 +93,7 @@ public extension EdgeAgent {
             throw EdgeAgentError.invalidAttachmentFormat(requestType)
         }
 
-        SDKLogger(category: .edgeAgent).info(message: "Presentation: \(presentationString)")
+        SDKLogger(category: LogComponent.edgeAgent).info(message: "Presentation: \(presentationString)")
 
         let base64String = try presentationString.tryToData().base64URLEncoded()
 

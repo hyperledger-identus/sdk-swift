@@ -7,35 +7,38 @@ extension JWTCredential: StorableCredential {
     }
     
     public var recoveryId: String {
-        "jwt+credential"
+        "jwt+vc"
     }
     
     public var credentialData: Data {
-        (try? JSONEncoder().encode(self)) ?? Data()
+        (try? jwtString.tryToData()) ?? Data()
     }
     
     public var queryIssuer: String? {
-        issuer
+        defaultEnvelop.iss ?? defaultEnvelop.vc.issuer.id
     }
-    
+
+    // TODO: This should be an array of Subjects
     public var querySubject: String? {
-        subject
+        defaultEnvelop.sub
     }
     
     public var queryCredentialCreated: Date? {
-        nil
+        defaultEnvelop.vc.validFrom ?? defaultEnvelop.nbf
     }
     
     public var queryCredentialUpdated: Date? {
         nil
     }
-    
+
+    // TODO: This should be an array of Schemas
     public var queryCredentialSchema: String? {
-        jwtVerifiableCredential.verifiableCredential.credentialSchema?.id
+        guard let schema = defaultEnvelop.vc.credentialSchema else { return nil }
+        return schema.array.compactMap { $0.type?.array }.flatMap { $0 }.first
     }
     
     public var queryValidUntil: Date? {
-        jwtVerifiableCredential.exp
+        defaultEnvelop.vc.validUntil ?? defaultEnvelop.exp
     }
     
     public var queryRevoked: Bool? {
@@ -43,6 +46,6 @@ extension JWTCredential: StorableCredential {
     }
     
     public var queryAvailableClaims: [String] {
-        claims.map(\.key)
+        []
     }
 }

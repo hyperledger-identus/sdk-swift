@@ -29,7 +29,10 @@ extension PolluxImpl: CredentialImporter {
                 schemaDownloader: schemaDownloader
             )
         case "jwt":
-            return try JWTCredential(data: credentialData)
+            guard let credential = try? JWTCredential(jwtString: credentialData.toString()) else {
+                return try LegacyJWTCredential(data: credentialData)
+            }
+            return credential
         case "sd-jwt":
             return try SDJWTCredential(sdjwtString: credentialData.tryToString())
         default:

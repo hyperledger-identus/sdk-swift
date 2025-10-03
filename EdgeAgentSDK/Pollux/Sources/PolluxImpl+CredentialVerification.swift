@@ -1,4 +1,5 @@
 import AnoncredsSwift
+import Core
 import Domain
 import Foundation
 import JSONWebAlgorithms
