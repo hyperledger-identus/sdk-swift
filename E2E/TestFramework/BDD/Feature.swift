@@ -34,13 +34,13 @@ open class Feature: XCTestCase {
     public override class func tearDown() {
         if (TestConfiguration.started) {
             let semaphore = DispatchSemaphore(value: 0)
-            Task.detached {
+            Task.detached(priority: .userInitiated) {
                 try await TestConfiguration.shared().endCurrentFeature()
                 semaphore.signal()
             }
             semaphore.wait()
         }
-        super.tearDown()
+        XCTestCase.tearDown()
     }
 
     func run() async throws {

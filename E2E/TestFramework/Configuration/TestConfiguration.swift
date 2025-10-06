@@ -264,7 +264,7 @@ open class TestConfiguration: ITestConfiguration {
     /// signals the suite has ended
     public func end() {
         let semaphore = DispatchSemaphore(value: 0)
-        Task.detached {
+        Task.detached(priority: .userInitiated) {
             self.suiteOutcome.end()
             try await self.afterFeatures(self.suiteOutcome.featureOutcomes)
             try await self.tearDownInstance()
