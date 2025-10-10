@@ -8,7 +8,8 @@ public class Scenario {
     var disabled: Bool = false
     var feature: Feature?
     var parameters: [String: String]?
-
+    var tags: [String] = []
+    
     private var lastContext: String = ""
     
     public init(_ title: String, parameters: [String: String] = [:]) {
@@ -29,6 +30,11 @@ public class Scenario {
         stepInstance.context = lastContext
         stepInstance.action = step
         steps.append(stepInstance)
+    }
+    
+    public func tags(_ tags: String...) -> Scenario {
+        self.tags.append(contentsOf: tags)
+        return self
     }
     
     public func given(_ step: String) -> Scenario {
@@ -54,7 +60,7 @@ public class Scenario {
         addStep(step)
         return self
     }
-    
+
     public func and(_ step: String) -> Scenario {
         if (lastContext.isEmpty) {
             fatalError("Trying to add an [and] step without previous context.")

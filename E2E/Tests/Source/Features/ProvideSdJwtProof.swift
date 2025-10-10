@@ -1,13 +1,9 @@
 import TestFramework
 
 final class ProvideSdJwtProof: Feature {
-    override func title() -> String {
-        "Provide sdjwt proof"
-    }
-    
-    override func description() -> String {
-        "The Edge Agent should provide sdjwt proof to Cloud Agent"
-    }
+    override var tags: [String] { ["sdjwt", "proof"] }
+    override var title: String { "Provide sdjwt proof" }
+    override var narrative: String { "The Edge Agent should provide sdjwt proof to Cloud Agent" }
     
     func testRespondToProofOfRequest() async throws {
         currentScenario = Scenario("Respond to request proof")

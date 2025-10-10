@@ -4,15 +4,11 @@ import SwiftHamcrest
 
 open class Feature: XCTestCase {
     let id: String = UUID().uuidString
-    open var currentScenario: Scenario? = nil
-
-    open func title() -> String {
-        fatalError("Set feature title")
-    }
-
-    open func description() -> String {
-        return ""
-    }
+    public var currentScenario: Scenario? = nil
+    
+    open var tags: [String] { return [] }
+    open var title: String { fatalError("Set feature title") }
+    open var narrative: String { return "" }
     
     /// our lifecycle starts after xctest is ending
     public override func tearDown() async throws {
@@ -38,18 +34,18 @@ open class Feature: XCTestCase {
     public override class func tearDown() {
         if (TestConfiguration.started) {
             let semaphore = DispatchSemaphore(value: 0)
-            Task.detached {
+            Task.detached(priority: .userInitiated) {
                 try await TestConfiguration.shared().endCurrentFeature()
                 semaphore.signal()
             }
             semaphore.wait()
         }
-        super.tearDown()
+        XCTestCase.tearDown()
     }
 
     func run() async throws {
         let currentTestMethodName = self.name
-        if currentScenario == nil {
+        guard let scenario = currentScenario else {
             let rawMethodName = currentTestMethodName.split(separator: " ").last?.dropLast() ?? "yourTestMethod"
             
             let errorMessage = """
@@ -66,9 +62,10 @@ open class Feature: XCTestCase {
             """
             throw ConfigurationError.missingScenario(errorMessage)
         }
-        if currentScenario!.disabled {
-            throw XCTSkip("Scenario '\(currentScenario!.name)' in test method \(currentTestMethodName) is disabled.")
+        if scenario.disabled {
+            throw XCTSkip("Scenario '\(scenario.name)' in test method \(currentTestMethodName) is disabled.")
         }
+        
         try await TestConfiguration.setUpInstance()
         
         if let parameterizedScenario = currentScenario as? ParameterizedScenario {

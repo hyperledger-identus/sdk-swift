@@ -1,13 +1,9 @@
 import TestFramework
 
-final class ReceiveAnoncredCredentialFeature: Feature {
-    override func title() -> String {
-        "Receive anonymous credential"
-    }
-    
-    override func description() -> String {
-        "The Edge Agent should be able to receive an anonymous credential from Cloud Agent"
-    }
+final class ReceiveAnoncredCredential: Feature {
+    override var tags: [String] { ["credential", "anoncred"] }
+    override var title: String { "Receive anonymous credential" }
+    override var narrative: String { "The Edge Agent should be able to receive an anonymous credential from Cloud Agent" }
     
     func testReceiveOneAnoncred() async throws {
         currentScenario = Scenario("Receive one anonymous credential")

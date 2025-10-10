@@ -1,13 +1,9 @@
 import TestFramework
 
-final class ConnectionFeature: Feature {
-    override func title() -> String {
-        "Create connection"
-    }
-    
-    override func description() -> String {
-        "The Edge Agent should be able to create a connection to Open Enterprise Agent"
-    }
+final class CreateConnection: Feature {
+    override var tags: [String] { ["connection"] }
+    override var title: String { "Create connection" }
+    override var narrative: String { "The Edge Agent should be able to create a connection to Open Enterprise Agent" }
     
     func testConnection() async throws {
         let table: [[String: String]] = [

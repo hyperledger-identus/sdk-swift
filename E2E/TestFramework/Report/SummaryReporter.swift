@@ -48,7 +48,7 @@ public class SummaryReporter: Reporter {
         
         for featureOutcome in featuresOutcome { // Corrected Swift loop syntax
             totalFeaturesExecuted += 1
-            let featureTitle = featureOutcome.feature.title()
+            let featureTitle = featureOutcome.feature.title
             let featureStatusString = featureOutcome.status.rawValue.uppercased()
             let featureDurationString = String(format: "%.2fs", featureOutcome.duration ?? 0.0)
             

@@ -41,7 +41,7 @@ public class JunitReporter: Reporter {
         featureFailures = 0
         
         let id = XMLNode.attribute(withName: "id", stringValue: feature.id) as! XMLNode
-        let name = XMLNode.attribute(withName: "name", stringValue: feature.title()) as! XMLNode
+        let name = XMLNode.attribute(withName: "name", stringValue: feature.title) as! XMLNode
         
         currentFeature.addAttribute(id)
         currentFeature.addAttribute(name)

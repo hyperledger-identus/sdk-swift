@@ -7,7 +7,7 @@ public class DebugReporter: Reporter {
     public required init() {}
     
     public func beforeFeature(_ feature: Feature) async throws {
-        if debug { print("Before Feature:", feature.title()) }
+        if debug { print("Before Feature:", feature.title) }
     }
     
     public func beforeScenario(_ scenario: Scenario) async throws {
@@ -35,7 +35,7 @@ public class DebugReporter: Reporter {
     }
     
     public func afterFeature(_ featureOutcome: FeatureOutcome) async throws {
-        print("After Feature", featureOutcome.feature.title())
+        print("After Feature", featureOutcome.feature.title)
     }
     
     public func afterFeatures(_ featuresOutcome: [FeatureOutcome]) async throws {

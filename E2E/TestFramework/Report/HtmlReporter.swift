@@ -49,7 +49,7 @@ public class HtmlReporter: Reporter {
         let htmlReport: HtmlReport = HtmlReport()
         for featureOutcome in featuresOutcome {
             let featureReport = FeatureReport()
-            featureReport.name = featureOutcome.feature.title()
+            featureReport.name = featureOutcome.feature.title
             htmlReport.data.append(featureReport)
             
             for scenarioOutcome in featureOutcome.scenarioOutcomes {

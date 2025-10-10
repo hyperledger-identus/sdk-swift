@@ -38,7 +38,7 @@ public class DotReporter: Reporter {
     public func afterFeatures(_ featuresOutcome: [FeatureOutcome]) async throws {
         print("Executed", featuresOutcome.count, "features")
         for featureOutcome in featuresOutcome {
-            print("  ", "Feature:", featureOutcome.feature.title())
+            print("  ", "Feature:", featureOutcome.feature.title)
             for scenarioOutcome in featureOutcome.scenarioOutcomes {
                 print(
                     "    ",
