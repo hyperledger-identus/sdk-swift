@@ -114,7 +114,7 @@ public struct StatusListEntry: RawCodable {
     /// Identifier for this status entry (typically a URI fragment within the credential).
     public let id: String
     /// The status entry type (e.g., `StatusList2021Entry` or `BitstringStatusListEntry`).
-    public let type: String
+    public let type: OneOrMany<String>
     /// The purpose of the status bit (revocation, suspension, etc.).
     public let statusPurpose: CredentialStatusPurpose
     /// The index in the status list (bit position) associated with this credential.
@@ -139,7 +139,7 @@ public struct StatusListEntry: RawCodable {
     ///   - statusMessage: Optional human‑readable messages for this status.
     public init(
         id: String,
-        type: String,
+        type: OneOrMany<String>,
         statusPurpose: CredentialStatusPurpose,
         statusListIndex: Int,
         statusListCredential: String,
@@ -160,7 +160,7 @@ public struct StatusListEntry: RawCodable {
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = try container.decode(String.self, forKey: .id)
-        self.type = try container.decode(String.self, forKey: .type)
+        self.type = try container.decode(OneOrMany<String>.self, forKey: .type)
         self.statusPurpose = try container.decode(StatusListEntry.CredentialStatusPurpose.self, forKey: .statusPurpose)
         self.statusListIndex = try container.decode(Int.self, forKey: .statusListIndex)
         self.statusListCredential = try container.decode(String.self, forKey: .statusListCredential)
@@ -271,7 +271,7 @@ public struct StatusListCredentialSubject: RawCodable {
     /// Identifier for the status list subject (typically a URI for the list document).
     public let id: String
     /// The subject type (e.g., `StatusList2021` or `BitstringStatusList`).
-    public let type: String
+    public let type: OneOrMany<String>
     /// The purpose of the status bits in this list (revocation, suspension, etc.).
     public let statusPurpose: StatusListEntry.CredentialStatusPurpose
     /// The compressed/encoded bitstring representing status values for a range of credentials.
@@ -283,7 +283,7 @@ public struct StatusListCredentialSubject: RawCodable {
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = try container.decode(String.self, forKey: .id)
-        self.type = try container.decode(String.self, forKey: .type)
+        self.type = try container.decode(OneOrMany<String>.self, forKey: .type)
         self.statusPurpose = try container.decode(StatusListEntry.CredentialStatusPurpose.self, forKey: .statusPurpose)
         self.encodedList = try container.decode(String.self, forKey: .encodedList)
         self.statusReference = try container.decode(String.self, forKey: .statusReference)

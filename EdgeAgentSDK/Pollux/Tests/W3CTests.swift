@@ -85,8 +85,8 @@ final class W3CTests: XCTestCase {
         // Validate a few key properties
         // @context should include at least the two entries we provided
         XCTAssertTrue(decoded.context.array.contains("https://www.w3.org/ns/credentials/v2"))
-        XCTAssertTrue(decoded.type.contains("VerifiableCredential"))
-        XCTAssertTrue(decoded.type.contains("ExampleCredential"))
+        XCTAssertTrue(decoded.type.array.contains("VerifiableCredential"))
+        XCTAssertTrue(decoded.type.array.contains("ExampleCredential"))
         XCTAssertEqual(decoded.id, "urn:uuid:12345678-1234-5678-9abc-def012345678")
         // validFrom should decode (required via validFrom or issuanceDate)
         XCTAssertNotNil(decoded.validFrom)
@@ -116,7 +116,7 @@ final class W3CTests: XCTestCase {
         let roundTripped = try decoder.decode(DefaultVerifiableCredential.self, from: encoded)
 
         XCTAssertEqual(roundTripped.id, decoded.id)
-        XCTAssertEqual(roundTripped.type, decoded.type)
+        XCTAssertEqual(roundTripped.type.array, decoded.type.array)
         XCTAssertEqual(roundTripped.context.array, decoded.context.array)
         XCTAssertEqual(roundTripped.validFrom, decoded.validFrom)
         XCTAssertEqual(roundTripped.validUntil, decoded.validUntil)
@@ -141,7 +141,7 @@ final class W3CTests: XCTestCase {
         let decoded = try decoder.decode(GenericVC.self, from: sampleVCRawJSON())
 
         // Sanity checks
-        XCTAssertTrue(decoded.type.contains("VerifiableCredential"))
+        XCTAssertTrue(decoded.type.array.contains("VerifiableCredential"))
         XCTAssertNotNil(decoded.validFrom)
 
         // Rebuild without raw and round-trip
@@ -168,7 +168,7 @@ final class W3CTests: XCTestCase {
         let roundTripped = try decoder.decode(GenericVC.self, from: encoded)
 
         XCTAssertEqual(roundTripped.id, decoded.id)
-        XCTAssertEqual(roundTripped.type, decoded.type)
+        XCTAssertEqual(roundTripped.type.array, decoded.type.array)
         XCTAssertEqual(roundTripped.context.array, decoded.context.array)
     }
 
@@ -185,7 +185,7 @@ final class W3CTests: XCTestCase {
         XCTAssertTrue(decoded.type.array.contains("VerifiablePresentation"))
         // The embedded credential should decode and carry VC types
         let embedded = decoded.verifiableCredential
-        XCTAssertTrue(embedded.type.contains("VerifiableCredential"))
+        XCTAssertTrue(embedded.type.array.contains("VerifiableCredential"))
 
         // Rebuild without raw to exercise synthesized encoding
         let rebuilt = VPSingle(
@@ -200,7 +200,7 @@ final class W3CTests: XCTestCase {
 
         XCTAssertEqual(roundTripped.type.array, decoded.type.array)
         XCTAssertEqual(roundTripped.context.array, decoded.context.array)
-        XCTAssertEqual(roundTripped.verifiableCredential.type, embedded.type)
+        XCTAssertEqual(roundTripped.verifiableCredential.type.array, embedded.type.array)
     }
 
     // MARK: - Tests: VerifiablePresentation (many VCs via OneOrMany)
@@ -217,7 +217,7 @@ final class W3CTests: XCTestCase {
         // Expect at least two credentials in the array
         let embeddedMany = decoded.verifiableCredential.array
         XCTAssertEqual(embeddedMany.count, 2)
-        XCTAssertTrue(embeddedMany.first?.type.contains("VerifiableCredential") ?? false)
+        XCTAssertTrue(embeddedMany.first?.type.array.contains("VerifiableCredential") ?? false)
 
         // Rebuild without raw and round-trip
         let rebuilt = VPMany(

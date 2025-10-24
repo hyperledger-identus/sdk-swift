@@ -49,7 +49,7 @@ extension JWTCredential: Credential {
 
         defaultEnvelop.exp.map { properties["exp"] = $0 }
         defaultEnvelop.vc.credentialSchema?.array.first.map { properties["schema"] = $0.id }
-        defaultEnvelop.vc.credentialStatus.map { properties["credentialStatus"] = $0.type }
+        defaultEnvelop.vc.credentialStatus.map { properties["credentialStatus"] = $0.array }
 
         return properties
     }

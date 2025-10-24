@@ -11,6 +11,7 @@ public enum CredentialOperationsOptions {
     case subjectDID(DID)  // The decentralized identifier of the subject.
     case entropy(String)  // Entropy for any randomization operation.
     case signableKey(SignableKey)  // A key that can be used for signing.
+    case privateKey(PrivateKey)  // A private key that can be used for signing.
     case exportableKey(ExportableKey)  // A key that can be exported.
     case exportableKeys([ExportableKey])  // A key that can be exported.
     case zkpPresentationParams(attributes: [String: Bool], predicates: [String]) // Anoncreds zero-knowledge proof presentation parameters
@@ -115,6 +116,42 @@ public protocol Pollux {
         presentationPayload: Data,
         options: [CredentialOperationsOptions]
     ) async throws -> Bool
+
+    /// Issues a new verifiable credential of the specified type using the provided claims and options.
+    /// 
+    /// - Parameters:
+    ///   - type: A string identifying the credential format to issue. Supported values typically include:
+    ///     - "jwt", "vc+jwt" for JSON Web Token-based credentials
+    ///     - "vc+sd-jwt" for selective disclosure JWT credentials
+    ///     Implementations may support additional types; consult the concrete `Pollux` implementation.
+    ///   - claims: A result-builder closure (`@CredentialClaimsBuilder`) that constructs the set of input claims
+    ///     to be embedded or referenced in the credential. The structure and required fields depend on the `type`.
+    ///   - options: A list of `CredentialOperationsOptions` providing contextual data and cryptographic material
+    ///     required for issuance. Common options include:
+    ///     - `.exportableKey(PrivateKey)` for signing
+    ///     - `.linkSecret(id:secret:)` for AnonCreds link secret
+    ///     - `.custom(key:data:)` for implementation-specific inputs
+    ///
+    /// - Returns: A `Credential` representing the issued verifiable credential, including any metadata necessary
+    ///   for storage, presentation, or later verification.
+    ///
+    /// - Throws: An error if issuance fails due to invalid inputs, unsupported `type`, missing or incompatible
+    ///   options (e.g., absent signing key, schema, or link secret), claim-building errors, or cryptographic failures.
+    ///
+    /// - Important:
+    ///   - The exact combination of required `options` depends on the credential `type`.
+    ///   - For formats requiring signing, you must provide a compatible key via one of the key-related options.
+    ///   - When issuing AnonCreds credentials, schema and credential definition information, as well as a link secret,
+    ///     are typically required.
+    ///   - The `claims` closure should produce claims compatible with the selected `type`; mismatches may cause errors.
+    ///
+    /// - See Also:
+    ///   - `parseCredential(type:credentialPayload:options:)`
+    func issueCredential(
+        type: String,
+        @CredentialClaimsBuilder claims: () -> InputClaim,
+        options: [CredentialOperationsOptions]
+    ) async throws -> Credential
 }
 
 public extension Pollux {

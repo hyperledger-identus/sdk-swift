@@ -47,10 +47,11 @@ public struct JWTCredential {
     /// - Throws: An error if the payload cannot be extracted or decoded.
     public init(jwtString: String, decoder: JSONDecoder = .jwt) throws {
         self.jwtString = jwtString
+        let payload: Data = try JWT.getPayload(jwtString: jwtString)
         self.defaultEnvelop = try decoder
             .decode(
                 JWTEnvelopedVerifiableCredential<DefaultVerifiableCredential>.self,
-                from: JWT.getPayload(jwtString: jwtString)
+                from: payload
             )
     }
 
