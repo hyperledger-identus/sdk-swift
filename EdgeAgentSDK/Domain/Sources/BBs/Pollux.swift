@@ -115,6 +115,12 @@ public protocol Pollux {
         presentationPayload: Data,
         options: [CredentialOperationsOptions]
     ) async throws -> Bool
+
+    func issueCredential(
+        type: String,
+        @CredentialClaimsBuilder claims: () -> InputClaim,
+        options: [CredentialOperationsOptions]
+    ) async throws -> Credential
 }
 
 public extension Pollux {
