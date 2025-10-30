@@ -120,10 +120,10 @@ public extension DIDCommAgent {
         let ownDID = try await createNewPeerDID(
             services: [.init(
                 id: "#didcomm-1",
-                type: ["DIDCommMessaging"],
-                serviceEndpoint: [.init(
+                type: .one("DIDCommMessaging"),
+                serviceEndpoint: .one(.init(
                     uri: "https://localhost:8080/didcomm"
-                )]
+                ))
             )],
             updateMediator: false
         )

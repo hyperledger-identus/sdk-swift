@@ -86,7 +86,7 @@
 /// - Parameters:
 ///   - encoder: The encoder to write data to.
 /// - Throws: An error if encoding fails.
-public enum OneOrMany<T: RawCodable>: RawCodable {
+public enum OneOrMany<T: Codable>: RawCodable {
     case one(T)
     case many([T])
 

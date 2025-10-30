@@ -23,10 +23,10 @@ struct CreatePeerDIDOperation {
             authenticationKeys: authenticationKeys,
             agreementKeys: agreementKeys,
             services: services.flatMap { service in
-                service.serviceEndpoint.map {
+                service.serviceEndpoint.array.map {
                     AnyCodable(dictionaryLiteral:
-                        ("id", service.id),
-                        ("type", service.type.first ?? ""),
+                        ("id", service.id ?? ""),
+                        ("type", service.type.array.first ?? ""),
                         ("serviceEndpoint", [
                             "uri" : $0.uri,
                             "accept" : $0.accept,

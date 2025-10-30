@@ -113,9 +113,10 @@ extension MercuryImpl {
 
     private func getDIDCommURL(document: DIDDocument) -> URL? {
         document.services
-            .first { $0.type.contains("DIDCommMessaging") }
+            .first { $0.type.array.contains("DIDCommMessaging") }
             .map {
                 $0.serviceEndpoint
+                    .array
                     .map { URL(string: $0.uri) }
                     .compactMap { $0 }
             }?.first
@@ -123,9 +124,10 @@ extension MercuryImpl {
 
     private func getDIDCommDID(document: DIDDocument) -> DID? {
         document.services
-            .first { $0.type.contains("DIDCommMessaging") }
+            .first { $0.type.array.contains("DIDCommMessaging") }
             .map {
                 $0.serviceEndpoint
+                    .array
                     .map { try? castor.parseDID(str: $0.uri) }
                     .compactMap { $0 }
             }?.first

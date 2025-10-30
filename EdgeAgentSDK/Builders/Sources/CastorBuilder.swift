@@ -8,7 +8,7 @@ public struct CastorBuilder {
         self.apollo = apollo
     }
 
-    public func build() -> Castor {
+    public func build(resolvers: [DIDResolverDomain] = []) -> Castor {
         CastorImpl(apollo: apollo)
     }
 }

@@ -108,8 +108,8 @@ struct LongFormPrismDIDResolver: DIDResolverDomain {
         let services = operation.createDid.didData.services.map {
             DIDDocument.Service(
                 id: $0.id,
-                type: [$0.type],
-                serviceEndpoint: $0.serviceEndpoint.map { .init(uri: $0) }
+                type: .one($0.type),
+                serviceEndpoint: .many($0.serviceEndpoint.map { .init(uri: $0) })
             )
         }
         let groupByPurpose = Dictionary(

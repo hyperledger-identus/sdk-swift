@@ -25,11 +25,11 @@ final class PeerDIDCreationTests: XCTestCase {
 
         let service = DIDDocument.Service(
             id: "didcomm",
-            type: ["DIDCommMessaging"],
-            serviceEndpoint: [.init(
+            type: .one("DIDCommMessaging"),
+            serviceEndpoint: .one(.init(
                 uri: "https://example.com/endpoint",
                 routingKeys: ["did:example:somemediator#somekey"]
-            )]
+            ))
         )
         let did = try castor.createPeerDID(
             keyAgreementPublicKey: keyAgreementPrivateKey.publicKey(),

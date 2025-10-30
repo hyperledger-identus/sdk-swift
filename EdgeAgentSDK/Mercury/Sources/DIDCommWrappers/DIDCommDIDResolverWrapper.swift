@@ -67,10 +67,10 @@ extension DIDCore.DIDDocument {
         }
 
         let services = from.services.flatMap { service in
-            service.serviceEndpoint.map {
+            service.serviceEndpoint.array.map {
                 return Service(
-                    id: service.id,
-                    type: service.type.first ?? "",
+                    id: service.id ?? "",
+                    type: service.type.array.first ?? "",
                     serviceEndpoint: AnyCodable(
                         dictionaryLiteral: 
                             ("uri", $0.uri),
