@@ -67,8 +67,8 @@ final class VerifiableCredentialV1Tests: XCTestCase {
         let vc = try makeDecoder().decode(DefaultVerifiableCredential.self, from: json)
 
         XCTAssertNotNil(vc.context)
-        XCTAssertEqual(vc.type.first, "VerifiableCredential")
-        XCTAssertEqual(vc.type.contains("UniversityDegreeCredential"), true)
+        XCTAssertEqual(vc.type.array.first, "VerifiableCredential")
+        XCTAssertEqual(vc.type.array.contains("UniversityDegreeCredential"), true)
         switch vc.issuer {
         case .id(let s): XCTAssertEqual(s, "did:example:123")
         default: XCTFail("Expected issuer string")
@@ -92,7 +92,7 @@ final class VerifiableCredentialV1Tests: XCTestCase {
 
         let vc = try makeDecoder().decode(DefaultVerifiableCredential.self, from: json)
 
-        XCTAssertEqual(vc.type, ["VerifiableCredential"])
+        XCTAssertEqual(vc.type.array, ["VerifiableCredential"])
         switch vc.issuer {
         case .object(let obj): XCTAssertEqual(obj.id, "did:example:issuer-1")
         default: XCTFail("Expected issuer object")

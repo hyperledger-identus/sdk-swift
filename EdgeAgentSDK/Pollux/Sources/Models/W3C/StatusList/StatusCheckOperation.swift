@@ -5,6 +5,29 @@ import Gzip
 import JSONWebSignature
 
 struct StatusCheckOperation {
+
+    enum StatusListCheckError: KnownPrismError {
+        case credentialSubjectNotFound
+        case typeMismatch
+
+        var code: Int {
+            switch self {
+            case .credentialSubjectNotFound:
+                return 6001
+            case .typeMismatch:
+                return 6002
+            }
+        }
+
+        var message: String {
+            switch self {
+            case .credentialSubjectNotFound:
+                "credentialSubject not found. It is required to have exactly one credentialSubject in the list."
+            case .typeMismatch:
+                "Type list must have a BitstringStatusListCredential type."
+            }
+        }
+    }
     let statusListEntry: StatusListEntry
 
     init(statusListEntry: StatusListEntry) {
@@ -15,12 +38,17 @@ struct StatusCheckOperation {
         let listData = try await DownloadDataWithResolver()
             .downloadFromEndpoint(urlOrDID: statusListEntry.statusListCredential)
         let statusList = try JSONDecoder.didComm().decode(StatusListCredential.self, from: listData)
-        let encodedList = statusList.credentialSubject.encodedList
+        guard let subject = statusList.credentialSubject.array.first else {
+            throw StatusListCheckError.credentialSubjectNotFound
+        }
+        guard subject.type.array.contains("BitstringStatusListCredential") else {
+            throw StatusListCheckError.typeMismatch
+        }
         let index = statusListEntry.statusListIndex
         let size = statusListEntry.statusSize
         return try verifyStatusOnEncodedList(
             try Data(
-                fromBase64URL: encodedList
+                fromBase64URL: subject.encodedList
             )
             .orThrow(UnknownError.somethingWentWrongError(customMessage: "Invalid base64 encoded string", underlyingErrors: nil)),
             index: index,

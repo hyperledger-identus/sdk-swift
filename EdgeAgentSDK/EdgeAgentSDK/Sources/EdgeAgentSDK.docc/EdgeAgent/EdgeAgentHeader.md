@@ -17,3 +17,4 @@ Edge Agent also provides support for receiving messages through the mediator, al
 ### Tutorials
 
 - <doc:EdgeAgentTutorials>
+- <doc:EdgeAgentIssueCredentialTutorial>

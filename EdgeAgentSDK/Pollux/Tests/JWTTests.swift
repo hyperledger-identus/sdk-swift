@@ -29,8 +29,36 @@ final class JWTTests: XCTestCase {
             .verifyRevocationOnEncodedList(encodedList, index: 94567))
     }
 
-    func testParseEnvelope() throws {
-        let validJWTString = try "eyJraWQiOiJFeEhrQk1XOWZtYmt2VjI2Nm1ScHVQMnNVWV9OX0VXSU4xbGFwVXpPOHJvIiwiYWxnIjoiRVMyNTYifQ.eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvbnMvY3JlZGVudGlhbHMvdjIiLCJodHRwczovL3d3dy53My5vcmcvbnMvY3JlZGVudGlhbHMvZXhhbXBsZXMvdjIiXSwiaWQiOiJodHRwOi8vdW5pdmVyc2l0eS5leGFtcGxlL2NyZWRlbnRpYWxzLzM3MzIiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiRXhhbXBsZURlZ3JlZUNyZWRlbnRpYWwiLCJFeGFtcGxlUGVyc29uQ3JlZGVudGlhbCJdLCJpc3N1ZXIiOiJodHRwczovL3VuaXZlcnNpdHkuZXhhbXBsZS9pc3N1ZXJzLzE0IiwidmFsaWRGcm9tIjoiMjAxMC0wMS0wMVQxOToyMzoyNFoiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDpleGFtcGxlOmViZmViMWY3MTJlYmM2ZjFjMjc2ZTEyZWMyMSIsImRlZ3JlZSI6eyJ0eXBlIjoiRXhhbXBsZUJhY2hlbG9yRGVncmVlIiwibmFtZSI6IkJhY2hlbG9yIG9mIFNjaWVuY2UgYW5kIEFydHMifSwiYWx1bW5pT2YiOnsibmFtZSI6IkV4YW1wbGUgVW5pdmVyc2l0eSJ9fSwiY3JlZGVudGlhbFNjaGVtYSI6W3siaWQiOiJodHRwczovL2V4YW1wbGUub3JnL2V4YW1wbGVzL2RlZ3JlZS5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifSx7ImlkIjoiaHR0cHM6Ly9leGFtcGxlLm9yZy9leGFtcGxlcy9hbHVtbmkuanNvbiIsInR5cGUiOiJKc29uU2NoZW1hIn1dfQ.xbpSjNX9SAAn8YM31TcXFIWgdLwNGpQguO2xoTWv_NoE1cSNW5RlWbsaO3hlYE6y9aa4q7ie5FXubvPwi1K__g".tryToData()
+    func testIssueJWTCredential() throws {
+        let privateKey = try apollo.createPrivateKey(parameters: [
+            KeyProperties.type.rawValue: "EC",
+            KeyProperties.curve.rawValue: KnownKeyCurves.secp256k1.rawValue,
+            KeyProperties.rawKey.rawValue: Data(base64URLEncoded: "4nMn2i4zJfcQQx4Su_0gTNfcqDAdQAU6DuvquIca2VI")!.base64Encoded()
+        ])
+
+        @CredentialClaimsBuilder var w3cClaims: InputClaim {
+            W3CV2ContextClaim() // This already adds the default required context
+            W3CIssuerClaim(id: "did:example:issuer")
+            W3CTypeClaim()
+            StringClaim(key: "name", value: "University Degree")
+            W3CCredentialSubjectClaim(subject: {
+                StringClaim(key: "id", value: "did:example:subject")
+                StringClaim(key: "name", value: "John Doe")
+                ObjectClaim(key: "grades") {
+                    NumberClaim(key: "mathematic", value: 8)
+                    NumberClaim(key: "physics", value: 7.2)
+                    NumberClaim(key: "english", value: 9.9)
+                }
+                BoolClaim(key: "approved", value: true)
+                ArrayClaim(key: "professors")  {
+                    ArrayValueClaim.string("Professor Jane Doe")
+                    ArrayValueClaim.string("Professor Josef Doe")
+                }
+            })
+        }
+
+        let credential = try JWTIssueCredential(privateKey: privateKey.exporting!, claims: w3cClaims).issue()
+        print(credential.id)
     }
 }
 

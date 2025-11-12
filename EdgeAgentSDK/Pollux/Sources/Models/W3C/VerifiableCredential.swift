@@ -77,8 +77,8 @@ import Foundation
 /// - W3C Verifiable Credentials Data Model 2.0: https://www.w3.org/TR/vc-data-model-2.0/
 public typealias DefaultVerifiableCredential = VerifiableCredential<
     DefaultIdentifiableObject,
-    OneOrMany<DefaultObject>,
     DefaultObject,
+    DefaultIdentifiableObject,
     DefaultIdentifiableAndTypeObject,
     DefaultObject,
     DefaultObject,
@@ -165,7 +165,7 @@ public struct VerifiableCredential<
     /// Optional credential identifier (typically a URI).
     public var id: String?
     /// Credential type(s). Includes "VerifiableCredential" and any domain-specific types.
-    public var type: [String]
+    public var type: OneOrMany<String>
     /// Optional human-readable name/title for the credential.
     public var name: String?
     /// Optional human-readable description of the credential.
@@ -177,9 +177,9 @@ public struct VerifiableCredential<
     /// Expiration time of the credential. Decodes from `validUntil` or legacy `expirationDate`.
     public var validUntil: Date?
     /// The credential subject payload describing claims about the subject.
-    public var credentialSubject: CredentialSubject
+    public var credentialSubject: OneOrMany<CredentialSubject>
     /// Optional status entry describing revocation/suspension information.
-    public var credentialStatus: CredentialStatus?
+    public var credentialStatus: OneOrMany<CredentialStatus>?
     /// Optional schema descriptor(s) for the credential. Supports one-or-many.
     public var credentialSchema: OneOrMany<CredentialSchema>?
     /// Optional terms of use entries. Supports one-or-many.
@@ -213,14 +213,14 @@ public struct VerifiableCredential<
     public init(
         context: OneOrMany<String>,
         id: String? = nil,
-        type: [String],
+        type: OneOrMany<String>,
         name: String? = nil,
         description: String? = nil,
         issuer: IssuerDefaultObject<IssuerObject>,
         validFrom: Date? = nil,
         validUntil: Date? = nil,
-        credentialSubject: CredentialSubject,
-        credentialStatus: CredentialStatus? = nil,
+        credentialSubject: OneOrMany<CredentialSubject>,
+        credentialStatus: OneOrMany<CredentialStatus>? = nil,
         credentialSchema: OneOrMany<CredentialSchema>? = nil,
         termsOfUse: OneOrMany<TermsOfUse>? = nil,
         evidence: OneOrMany<Evidence>? = nil,
@@ -247,20 +247,14 @@ public struct VerifiableCredential<
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.context = try container.decodeIfPresent(OneOrMany<String>.self, forKey: .context) ?? .many([])
         self.id = try container.decodeIfPresent(String.self, forKey: .id)
-        self.type = try container.decode([String].self, forKey: .type)
+        self.type = try container.decode(OneOrMany<String>.self, forKey: .type)
         self.name = try container.decodeIfPresent(String.self, forKey: .name)
         self.description = try container.decodeIfPresent(String.self, forKey: .description)
         self.issuer = try container.decode(IssuerDefaultObject<IssuerObject>.self, forKey: .issuer)
-        if let validFrom = try container.decodeIfPresent(Date.self, forKey: .validFrom) {
-            self.validFrom = validFrom
-        } else if let issuanceDate = try container.decodeIfPresent(Date.self, forKey: .issuanceDate) {
-            self.validFrom = issuanceDate
-        } else {
-            throw DecodingError.keyNotFound(CodingKeys.validFrom, .init(codingPath: [CodingKeys.validFrom], debugDescription: "Key 'validFrom' or 'issuanceDate' does not exist"))
-        }
+        self.validFrom = try container.decodeIfPresent(Date.self, forKey: .validFrom) ?? container.decodeIfPresent(Date.self, forKey: .issuanceDate)
         self.validUntil = try container.decodeIfPresent(Date.self, forKey: .validUntil) ?? container.decodeIfPresent(Date.self, forKey: .expirationDate)
-        self.credentialSubject = try container.decode(CredentialSubject.self, forKey: .credentialSubject)
-        self.credentialStatus = try container.decodeIfPresent(CredentialStatus.self, forKey: .credentialStatus)
+        self.credentialSubject = try container.decode(OneOrMany<CredentialSubject>.self, forKey: .credentialSubject)
+        self.credentialStatus = try container.decodeIfPresent(OneOrMany<CredentialStatus>.self, forKey: .credentialStatus)
         self.credentialSchema = try container.decodeIfPresent(OneOrMany<CredentialSchema>.self, forKey: .credentialSchema)
         self.termsOfUse = try container.decodeIfPresent(OneOrMany<TermsOfUse>.self, forKey: .termsOfUse)
         self.evidence = try container.decodeIfPresent(OneOrMany<Evidence>.self, forKey: .evidence)

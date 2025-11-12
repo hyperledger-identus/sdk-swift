@@ -163,4 +163,68 @@ public extension EdgeAgent {
             ]
         )
     }
+
+    /// Issues a verifiable credential of the specified type using the given issuer DID and claims.
+    /// 
+    /// This function retrieves the issuer's private key material from secure storage (Pluto) based on the
+    /// provided DID, restores an exportable key via Apollo, and then delegates to Pollux to construct and
+    /// issue the credential. The claims payload is built using the `@CredentialClaimsBuilder` result builder,
+    /// allowing a declarative specification of the credential’s claims.
+    /// 
+    /// - Parameters:
+    ///   - issuerDID: The decentralized identifier (DID) of the issuer that will sign the credential.
+    ///   - type: A string identifying the credential type/schema to be issued. The value must correspond to a
+    ///           type supported by the underlying Pollux issuance flow.
+    ///   - claims: A result-builder closure (`@CredentialClaimsBuilder`) that produces the claims to embed in
+    ///             the credential. Use this to define claim fields and values required by the credential type.
+    /// 
+    /// - Returns: A `Credential` representing the newly issued verifiable credential, including its signed payload.
+    /// 
+    /// - Throws: An error if:
+    ///   - The issuer’s DID information or private key cannot be found in storage.
+    ///   - The private key cannot be restored or exported for signing.
+    ///   - The credential issuance process fails in the Pollux component (e.g., schema/type not supported, signing errors).
+    /// 
+    /// - Important: Ensure the issuer DID has been created and its private key securely stored (via Pluto) before
+    ///              calling this method. The `type` and `claims` must match the expected schema for successful issuance.
+    /// 
+    /// - SeeAlso:
+    ///   - `Credential`
+    ///   - `@CredentialClaimsBuilder`
+    ///   - `DID`
+    ///   - `Pollux`
+    ///   - `Pluto`
+    ///   - `Apollo`
+    func issueCredential(
+        issuerDID: DID,
+        type: String,
+        @CredentialClaimsBuilder claims: () -> InputClaim
+    ) async throws -> Credential {
+        let pluto = self.pluto
+        let info = try await pluto
+            // First get DID info (KeyPathIndex in this case)
+            .getDIDInfo(did: issuerDID)
+            .first()
+            .await()
+
+        guard
+            let storedPrivateKey = info?.privateKeys.first,
+            let exportingKey = try await apollo.restorePrivateKey(storedPrivateKey).exporting
+        else {
+            logger.error(
+                message: """
+Could not find key in storage please use Castor instead and provide the private key
+"""
+            )
+            throw EdgeAgentError.cannotFindDIDKeyPairIndex
+        }
+
+        return try await pollux.issueCredential(
+            type: type,
+            claims: claims,
+            options: [
+                .exportableKey(exportingKey)
+            ]
+        )
+    }
 }
