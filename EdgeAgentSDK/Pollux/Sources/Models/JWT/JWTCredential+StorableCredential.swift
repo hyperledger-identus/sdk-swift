@@ -7,7 +7,7 @@ extension JWTCredential: StorableCredential {
     }
     
     public var recoveryId: String {
-        "jwt+vc"
+        "jwt+credential"
     }
     
     public var credentialData: Data {

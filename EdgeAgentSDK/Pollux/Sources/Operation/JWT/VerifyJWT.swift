@@ -1,3 +1,4 @@
+import Core
 import Domain
 import Foundation
 import JSONWebAlgorithms
@@ -7,6 +8,7 @@ struct VerifyJWT {
     let castor: Castor
 
     func verifyJWT(jwtString: String) async throws -> Bool {
+        let jwtString = try jwtString.parseIfUrl()
         try await verifyJWTCredentialRevocation(jwtString: jwtString)
         let payload: DefaultJWTClaimsImpl = try JWT.getPayload(jwtString: jwtString)
         guard let issuer = payload.iss else {
