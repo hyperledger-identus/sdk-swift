@@ -36,8 +36,8 @@ class PrismShortFormResolver: DIDResolverDomain {
                 }
                 return DIDDocument.Service(
                     id: service.id,
-                    type: type,
-                    serviceEndpoint: try convertServiceEndpoints(from: service.serviceEndpoint)
+                    type: .many(type),
+                    serviceEndpoint: .many(try convertServiceEndpoints(from: service.serviceEndpoint))
                 )
             } ?? []
         )
