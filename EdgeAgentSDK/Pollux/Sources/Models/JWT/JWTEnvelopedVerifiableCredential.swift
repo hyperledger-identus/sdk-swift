@@ -1,7 +1,8 @@
+import Core
 import Domain
 import Foundation
 
-public struct JWTEnvelopedVerifiableCredential<Credential: Codable>: Codable {
+public struct JWTEnvelopedVerifiableCredential<Credential: Codable>: RawCodable {
     public let iss: String?
     public let sub: String?
     public let nbf: Date?
@@ -10,6 +11,7 @@ public struct JWTEnvelopedVerifiableCredential<Credential: Codable>: Codable {
     public let jti: String?
     public let aud: [String]?
     public let vc: Credential
+    public let raw: AnyCodable?
 
     init(
         iss: String? = nil,
@@ -19,7 +21,8 @@ public struct JWTEnvelopedVerifiableCredential<Credential: Codable>: Codable {
         iat: Date? = nil,
         jti: String? = nil,
         aud: [String]? = nil,
-        vc: Credential
+        vc: Credential,
+        raw: AnyCodable? = nil
     ) {
         self.iss = iss
         self.sub = sub
@@ -29,6 +32,7 @@ public struct JWTEnvelopedVerifiableCredential<Credential: Codable>: Codable {
         self.jti = jti
         self.aud = aud
         self.vc = vc
+        self.raw = raw
     }
 
     enum CodingKeys: CodingKey {
@@ -63,5 +67,22 @@ public struct JWTEnvelopedVerifiableCredential<Credential: Codable>: Codable {
         } else {
             self.vc = try Credential(from: decoder)
         }
+        self.raw = try AnyCodable(from: decoder)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        guard let raw else {
+            var container = encoder.container(keyedBy: JWTEnvelopedVerifiableCredential<Credential>.CodingKeys.self)
+            try container.encodeIfPresent(self.iss, forKey: .iss)
+            try container.encodeIfPresent(self.sub, forKey: .sub)
+            try container.encodeIfPresent(self.nbf, forKey: .nbf)
+            try container.encodeIfPresent(self.exp, forKey: .exp)
+            try container.encodeIfPresent(self.iat, forKey: .iat)
+            try container.encodeIfPresent(self.jti, forKey: .jti)
+            try container.encodeIfPresent(self.aud, forKey: .aud)
+            try container.encode(self.vc, forKey: .vc)
+            return
+        }
+        try raw.encode(to: encoder)
     }
 }

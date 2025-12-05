@@ -26,7 +26,7 @@ public struct EnvelopedVerfiablePresentation: RawCodable {
     enum CodingKeys: String, CodingKey {
         case context = "@context"
         case type
-        case verifiableCredential
+        case id
     }
 
     /// The JSON‑LD `@context` values for the enveloped presentation entry (one‑or‑many).
@@ -62,7 +62,7 @@ public struct EnvelopedVerfiablePresentation: RawCodable {
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.context = try container.decodeIfPresent(OneOrMany<String>.self, forKey: .context) ?? .many([])
-        self.id = try container.decode(String.self, forKey: .context)
+        self.id = try container.decode(String.self, forKey: .id)
         self.type = try container.decodeIfPresent(OneOrMany<String>.self, forKey: .type) ?? .many([])
         self.raw = try AnyCodable(from: decoder)
     }
@@ -71,7 +71,7 @@ public struct EnvelopedVerfiablePresentation: RawCodable {
         guard let raw else {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(context, forKey: .context)
-            try container.encode(id, forKey: .context)
+            try container.encode(id, forKey: .id)
             try container.encode(type, forKey: .type)
             return
         }

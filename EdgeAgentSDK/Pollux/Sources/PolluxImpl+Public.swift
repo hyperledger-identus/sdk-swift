@@ -8,8 +8,12 @@ extension PolluxImpl: Pollux {
             switch restorationIdentifier {
             case "sd-jwt+credential":
                 return try SDJWTCredential(sdjwtString: credentialData.tryToString())
-            case "jwt+credential":
-                return try JSONDecoder().decode(LegacyJWTCredential.self, from: credentialData)
+            case "jwt+credential", "jwt+vc":
+                do {
+                    return try JWTCredential(jwtString: credentialData.tryToString())
+                } catch {
+                    return try JSONDecoder().decode(LegacyJWTCredential.self, from: credentialData)
+                }
             case "w3c+credential":
                 return try JSONDecoder().decode(LegacyW3CVerifiableCredential.self, from: credentialData)
             case "anon+credential":

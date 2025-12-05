@@ -143,7 +143,7 @@ class EdgeAgentWorkflow {
         ) { sdk in
             let message = sdk.issueCredentialStack.removeFirst()
             let issuedCredential = try IssueCredential3_0(fromMessage: message)
-            _ = try await sdk.didcommAgent.processIssuedCredentialMessage(message: issuedCredential)
+            let credential = try await sdk.didcommAgent.processIssuedCredentialMessage(message: issuedCredential)
             try await edgeAgent.remember(key: recordId, value: message.id)
         }
     }
@@ -164,11 +164,16 @@ class EdgeAgentWorkflow {
         ) { sdk in
             let credentials = sdk.didcommAgent.edgeAgent.verifiableCredentials()
             let credential = try await credentials.map { $0.first }.first().await()
+            
+            guard let credential else {
+                throw ValidationError.error(message: "No credential available to present")
+            }
+            
             let message = sdk.proofOfRequestStack.removeFirst()
             let requestPresentationMessage = try RequestPresentation(fromMessage: message)
             let sendProofMessage = try await sdk.didcommAgent.createPresentationForRequestProof(
                 request: requestPresentationMessage,
-                credential: credential!,
+                credential: credential,
                 options: [.disclosingClaims(claims: ["automation-required"])]
             ).makeMessage()
             _ = try await sdk.didcommAgent.sendMessage(message: sendProofMessage)

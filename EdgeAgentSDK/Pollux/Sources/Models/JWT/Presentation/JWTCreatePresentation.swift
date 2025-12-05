@@ -76,7 +76,7 @@ struct JWTCreatePresentation {
             throw PolluxError.credentialIsNotOfPresentationDefinitionRequiredAlgorithm
         }
 
-        let credentialSubject = try JSONEncoder().encode(credential.defaultEnvelop.vc)
+        let credentialSubject = try JSONEncoder().encode(credential.defaultEnvelop)
 
         try presentationRequest.presentationDefinition.inputDescriptors.forEach {
             try $0.constraints.fields.forEach {
@@ -92,7 +92,7 @@ struct JWTCreatePresentation {
                 format: "jwt",
                 pathNested: .init(
                     id: $0.id,
-                    path: "$.vp.verifiableCredential[0]",
+                    path: "$.vp.verifiableCredential[0].id",
                     format: "jwt"
                 )
             )
@@ -126,7 +126,7 @@ struct JWTCreatePresentation {
         credential: JWTCredential,
         request: Data,
         did: DID
-    ) throws -> JWTEnvelopedVerifiablePresentation<VerifiablePresentation<EnvelopedVerfiablePresentation>> {
+    ) throws -> JWTEnvelopedVerifiablePresentation<VerifiablePresentation<OneOrMany<EnvelopedVerfiablePresentation>>> {
         let jsonObject = try JSONSerialization.jsonObject(with: request)
         guard
             let domain = findValue(forKey: "domain", in: jsonObject),
@@ -140,17 +140,17 @@ struct JWTCreatePresentation {
             vp: VerifiablePresentation(
                 context: .one(W3CRegisteredConstants.verifiableCredential2_0Context),
                 type: .one(W3CRegisteredConstants.verifiablePresentationType),
-                verifiableCredential: EnvelopedVerfiablePresentation(
+                verifiableCredential: .many([EnvelopedVerfiablePresentation(
                     context: .one(W3CRegisteredConstants.verifiableCredential2_0Context),
                     id: "data:application/vc+jwt,\(credential.jwtString)",
                     type: .one(W3CRegisteredConstants.envelopedVerifiableCredentialType)
-                )
+                )])
             )
         )
     }
 
-    private func vcPresentationJWTString(
-        payload: JWTEnvelopedVerifiablePresentation<VerifiablePresentation<EnvelopedVerfiablePresentation>>,
+    private func vcPresentationJWTString<Payload: Codable>(
+        payload: Payload,
         exportableKey: ExportableKey
     ) throws -> String {
         let keyJWK = exportableKey.jwk
