@@ -74,7 +74,7 @@ struct StatusCheckOperation {
 
     func verifySingleStatus(
         _ bitList: [Bool],
-        index: Int,
+        index: Int
     ) throws -> Bool {
         guard index < bitList.count else {
             throw UnknownError.somethingWentWrongError(customMessage: "Revocation index out of bounds", underlyingErrors: nil)
