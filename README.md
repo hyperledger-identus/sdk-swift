@@ -40,6 +40,14 @@ To get started with the Identus Swift SDK, you can set up the SDK and create a n
 - MacOS 12 or later
 - iOS 15 or later
 
+## Testing
+
+To run the automated test suite, execute the helper script:
+
+```bash
+./build_test.sh
+```
+
 ### Integrating the SDK in an existing project
 
 To integrate the SDK into an existing project, you can use the Swift Package Manager, distributed with Xcode.
