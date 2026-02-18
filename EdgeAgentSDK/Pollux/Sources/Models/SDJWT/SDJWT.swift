@@ -51,7 +51,7 @@ extension SDJWTCredential: Credential {
     }
     
     var credentialType: String {
-        return "sd-jwt"
+        return "sdjwt"
     }
 }
 

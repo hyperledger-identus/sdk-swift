@@ -38,9 +38,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./build_test.sh
 
-#      - name: Publish to coveralls
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        uses: coverallsapp/github-action@v2
-#        with:
-#          file: "lcov.info"
+      - name: Publish to coveralls
+        env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: coverallsapp/github-action@v2
+        with:
+         file: "lcov.info"

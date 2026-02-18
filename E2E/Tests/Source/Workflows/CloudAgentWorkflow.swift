@@ -40,6 +40,20 @@ class CloudAgentWorkflow {
         ) { try await $0.offerCredential(connectionId) }
         try await cloudAgent.remember(key: "recordId", value: credentialOfferRecord.recordId)
     }
+
+    static func createJwtConnectionlessCredentialOfferInvitation(cloudAgent: Actor) async throws {
+        let credentialOfferRecord = try await cloudAgent.perform(
+            withAbility: CloudAgentAPI.self,
+            description: "creates a connectionless jwt credential offer invitation"
+        ) { try await $0.createConnectionlessJwtCredentialOfferInvitation() }
+
+        guard let invitationUrl = credentialOfferRecord.invitation?.invitationUrl else {
+            throw ValidationError.error(message: "Missing credential offer invitation URL")
+        }
+
+        try await cloudAgent.remember(key: "invitation", value: invitationUrl)
+        try await cloudAgent.remember(key: "recordId", value: credentialOfferRecord.recordId)
+    }
     
     static func offersAnonymousCredential(cloudAgent: Actor) async throws {
         let connectionId: String = try await cloudAgent.recall(key: "connectionId")
@@ -65,6 +79,20 @@ class CloudAgentWorkflow {
             withAbility: CloudAgentAPI.self,
             description: "ask a presentation proof to \(connectionId)"
         ) { try await $0.requestPresentProof(connectionId) }
+        try await cloudAgent.remember(key: "presentationId", value: presentation.presentationId)
+    }
+
+    static func createJwtConnectionlessVerificationInvite(cloudAgent: Actor) async throws {
+        let presentation = try await cloudAgent.perform(
+            withAbility: CloudAgentAPI.self,
+            description: "creates a connectionless jwt verification invitation"
+        ) { try await $0.requestConnectionlessJwtPresentProofInvitation() }
+
+        guard let invitationUrl = presentation.invitation?.invitationUrl else {
+            throw ValidationError.error(message: "Missing presentation invitation URL")
+        }
+
+        try await cloudAgent.remember(key: "invitation", value: invitationUrl)
         try await cloudAgent.remember(key: "presentationId", value: presentation.presentationId)
     }
     

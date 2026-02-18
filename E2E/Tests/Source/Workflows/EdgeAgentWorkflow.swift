@@ -10,14 +10,22 @@ import TestFramework
 class EdgeAgentWorkflow {
     static func connectsThroughTheInvite(edgeAgent: Actor) async throws {
         let invitation: String = try await edgeAgent.recall(key: "invitation")
-        let url = URL(string: invitation)!
         
         try await edgeAgent.perform(
             withAbility: DidcommAgentAbility.self,
             description: "parses an OOB invitation"
         ) { sdk in
-            let oob = try sdk.didcommAgent.parseOOBInvitation(url: url)
-            try await sdk.didcommAgent.acceptDIDCommInvitation(invitation: oob)
+            let invitationType = try await sdk.didcommAgent.parseInvitation(str: invitation)
+            switch invitationType {
+            case .onboardingDIDComm(let oob):
+                try await sdk.didcommAgent.acceptDIDCommInvitation(invitation: oob)
+            case .connectionlessIssuance, .connectionlessPresentation:
+                // Connectionless flow: invitation is stored as a received message by parseInvitation.
+                break
+            case .onboardingPrism:
+                // Not used in these E2E flows.
+                break
+            }
         }
     }
     
@@ -39,6 +47,31 @@ class EdgeAgentWorkflow {
             let recordId: String = try await cloudAgent.recall(key: "recordId")
             recordIdList.append(recordId)
             try await CloudAgentWorkflow.verifyCredentialState(cloudAgent: cloudAgent, recordId: recordId, expectedState: .CredentialSent)
+            try await EdgeAgentWorkflow.waitToReceiveIssuedCredentials(edgeAgent: edgeAgent, numberOfCredentials: 1)
+            try await EdgeAgentWorkflow.processIssuedCredential(edgeAgent: edgeAgent, recordId: recordId)
+        }
+        try await cloudAgent.remember(key: "recordIdList", value: recordIdList)
+    }
+
+    static func hasIssuedConnectionlessJwtCredentials(
+        edgeAgent: Actor,
+        numberOfCredentialsIssued: Int,
+        cloudAgent: Actor
+    ) async throws {
+        var recordIdList: [String] = []
+        for _ in 0..<numberOfCredentialsIssued {
+            try await CloudAgentWorkflow.createJwtConnectionlessCredentialOfferInvitation(cloudAgent: cloudAgent)
+            try await CloudAgentWorkflow.sharesInvitationToEdgeAgent(cloudAgent: cloudAgent, edgeAgent: edgeAgent)
+            try await EdgeAgentWorkflow.connectsThroughTheInvite(edgeAgent: edgeAgent)
+            try await EdgeAgentWorkflow.waitToReceiveCredentialsOffer(edgeAgent: edgeAgent, numberOfCredentials: 1)
+            try await EdgeAgentWorkflow.acceptsTheCredentialOffer(edgeAgent: edgeAgent)
+            let recordId: String = try await cloudAgent.recall(key: "recordId")
+            recordIdList.append(recordId)
+            try await CloudAgentWorkflow.verifyCredentialState(
+                cloudAgent: cloudAgent,
+                recordId: recordId,
+                expectedState: .CredentialSent
+            )
             try await EdgeAgentWorkflow.waitToReceiveIssuedCredentials(edgeAgent: edgeAgent, numberOfCredentials: 1)
             try await EdgeAgentWorkflow.processIssuedCredential(edgeAgent: edgeAgent, recordId: recordId)
         }

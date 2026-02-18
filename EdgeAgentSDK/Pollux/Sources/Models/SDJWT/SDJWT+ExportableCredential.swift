@@ -6,5 +6,5 @@ extension SDJWTCredential: ExportableCredential {
         (try? sdjwtString.tryToData()) ?? Data()
     }
 
-    public var restorationType: String { "sd-jwt" }
+    public var restorationType: String { "sdjwt" }
 }
