@@ -33,7 +33,7 @@ extension PolluxImpl: CredentialImporter {
                 return try LegacyJWTCredential(data: credentialData)
             }
             return credential
-        case "sdjwt":
+        case "sdjwt", "sd-jwt":
             return try SDJWTCredential(sdjwtString: credentialData.tryToString())
         default:
             throw PolluxError.invalidCredentialError
