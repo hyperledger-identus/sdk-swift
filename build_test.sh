@@ -30,28 +30,29 @@ xcodebuild -scheme "EdgeAgentSDK-Package" \
     -enableCodeCoverage YES \
     clean build test | xcpretty
 echo "Execution completed"
+echo "Execution completed"
 
-# Find profdata
-#PROF_DATA=$(find "$DERIVED_DATA_DIR" -name Coverage.profdata)
-#echo "Profdata found: $PROF_DATA"
+# lcov generation
+PROF_DATA=$(find "$DERIVED_DATA_DIR" -name "Coverage.profdata" | head -n 1)
+if [ -z "$PROF_DATA" ]; then
+    echo "Error: Coverage.profdata not found. Ensure 'enableCodeCoverage' is YES."
+    exit 1
+fi
+echo "Profdata found: $PROF_DATA"
 
-# Find all binaries
-#BINARIES=$(find ~/.derivedData -type f -name "*Tests")
+BINARIES=$(find "$DERIVED_DATA_DIR" -type f -name "*Tests" ! -name "*.xctest")
+for BINARY in $BINARIES; do
+  BASE_NAME=$(basename "$BINARY")
+  echo "Generating coverage for $BASE_NAME"
+  LCOV_NAME="${BASE_NAME}.lcov"
+  
+  xcrun llvm-cov export \
+    --format=lcov \
+    --instr-profile "$PROF_DATA" \
+    "$BINARY" \
+    --ignore-filename-regex="Tests/|.*\.(xcodeproj|xctest).*|.*/.derivedData/.*|.*/SourcePackages/.*" \
+    > "$LCOV_DIR/$LCOV_NAME"
+done
 
-# Print all binaries found
-#for BINARY in $BINARIES; do
-#  echo "Binary found: $BINARY"
-#done
-
-# Generate lcov for each target
-#for BINARY in $BINARIES; do
-#  BASE_NAME=$(basename "$BINARY")
-#  echo "Generating coverage for $BASE_NAME"
-#  LCOV_NAME="${BASE_NAME}.lcov"
-#  xcrun llvm-cov export --format=lcov \
-#    -instr-profile "$PROF_DATA" "$BINARY" > "$LCOV_DIR/$LCOV_NAME"
-#done
-
-# Merge all coverage
-#echo "Merging partials to lcov.info"
-#lcov -o lcov.info -a "$LCOV_DIR/*.lcov" --include EdgeAgentSDK/ --exclude Tests > /dev/null
+echo "Merging partials to lcov.info"
+cat "$LCOV_DIR"/*.lcov > lcov.info

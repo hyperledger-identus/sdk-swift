@@ -26,6 +26,15 @@ class EdgeAgentSteps: Steps {
         try await EdgeAgentWorkflow.hasIssuedJwtCredentials(edgeAgent: edgeAgent, numberOfCredentialsIssued: numberOfCredentials, cloudAgent: cloudAgent)
     }
 
+    @Step("{actor} has '{int}' connectionless jwt credentials issued by {actor}")
+    var edgeAgentHasConnectionlessJwtCredentialsIssuedByCloudAgent = { (edgeAgent: Actor, numberOfCredentials: Int, cloudAgent: Actor) async throws in
+        try await EdgeAgentWorkflow.hasIssuedConnectionlessJwtCredentials(
+            edgeAgent: edgeAgent,
+            numberOfCredentialsIssued: numberOfCredentials,
+            cloudAgent: cloudAgent
+        )
+    }
+
     @Step("{actor} has '{int}' sdjwt credentials issued by {actor}")
     var edgeAgentHasSdJwtCredentialsIssuedByCloudAgent = { (edgeAgent: Actor, numberOfCredentials: Int, cloudAgent: Actor) async throws in
         try await EdgeAgentWorkflow.hasIssuedSdJwtCredentials(edgeAgent: edgeAgent, numberOfCredentialsIssued: numberOfCredentials, cloudAgent: cloudAgent)

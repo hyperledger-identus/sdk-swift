@@ -29,6 +29,11 @@ class CloudAgentSteps: Steps {
     var cloudAgentAsksForJwtPresentProof = { (cloudAgent: Actor) in
         try await CloudAgentWorkflow.asksForJwtPresentProof(cloudAgent: cloudAgent)
     }
+
+    @Step("{actor} has a connectionless jwt verification invite")
+    var cloudAgentHasAConnectionlessJwtVerificationInvite = { (cloudAgent: Actor) in
+        try await CloudAgentWorkflow.createJwtConnectionlessVerificationInvite(cloudAgent: cloudAgent)
+    }
     
     @Step("{actor} asks for sdjwt present-proof")
     var cloudAgentAsksForSdJwtPresentProof = { (cloudAgent: Actor) in
@@ -59,6 +64,12 @@ class CloudAgentSteps: Steps {
             recordIdList.append(recordId)
         }
         try await cloudAgent.remember(key: "recordIdList", value: recordIdList)
+    }
+
+    @Step("{actor} has a connectionless jwt credential offer invitation")
+    var cloudAgentHasAConnectionlessJwtCredentialOfferInvitation = { (cloudAgent: Actor) in
+        try await CloudAgentWorkflow.createJwtConnectionlessCredentialOfferInvitation(cloudAgent: cloudAgent)
+        try await cloudAgent.remember(key: "recordIdList", value: ["connectionless"])
     }
     
     @Step("{actor} should see all credentials were accepted")

@@ -344,6 +344,36 @@ class CloudAgentAPI: Ability {
             throw Error.WrongResponse(response)
         }
     }
+
+    func createConnectionlessJwtCredentialOfferInvitation() async throws -> Components.Schemas.IssueCredentialRecord {
+        var claims: OpenAPIValueContainer = try OpenAPIValueContainer()
+        claims.value = [
+            "automation-required" : UUID().uuidString
+        ]
+
+        let body = Components.Schemas.CreateIssueCredentialRecordRequest(
+            validityPeriod: 3600,
+            schemaId: .case2("\(Config.agentUrl)/schema-registry/schemas/\(Config.jwtSchemaGuid)"),
+            credentialFormat: "JWT",
+            claims: claims,
+            automaticIssuance: true,
+            issuingDID: Config.publishedSecp256k1Did,
+            connectionId: nil,
+            goalCode: "automation-connectionless-jwt-issuance",
+            goal: "automation"
+        )
+
+        let response = try await client.createCredentialOfferInvitation(body: .json(body))
+        switch(response) {
+        case .created(let createdResponse):
+            switch(createdResponse.body){
+            case .json(let body):
+                return body
+            }
+        default:
+            throw Error.WrongResponse(response)
+        }
+    }
     
     func offerAnonymousCredential(_ connectionId: String) async throws -> Components.Schemas.IssueCredentialRecord {
         var claims: OpenAPIValueContainer = try OpenAPIValueContainer()
@@ -437,6 +467,39 @@ class CloudAgentAPI: Ability {
         
         let response = try await client.requestPresentation(body: .json(body))
         
+        switch(response){
+        case .created(let createdResponse):
+            switch(createdResponse.body){
+            case .json(let body):
+                return body
+            }
+        default:
+            throw Error.WrongResponse(response)
+        }
+    }
+
+    func requestConnectionlessJwtPresentProofInvitation() async throws -> Components.Schemas.PresentationStatus {
+        let options = Components.Schemas.Options(
+            challenge: UUID().uuidString,
+            domain: Config.agentUrl
+        )
+
+        let proof = Components.Schemas.ProofRequestAux(
+            schemaId: "\(Config.agentUrl)/schema-registry/schemas/\(Config.jwtSchemaGuid)",
+            trustIssuers: [Config.publishedSecp256k1Did]
+        )
+
+        let body = Components.Schemas.RequestPresentationInput(
+            goalCode: "automation-connectionless-jwt-verification",
+            goal: "automation",
+            connectionId: nil,
+            options: options,
+            proofs: [proof],
+            credentialFormat: "JWT"
+        )
+
+        let response = try await client.createOOBRequestPresentationInvitation(body: .json(body))
+
         switch(response){
         case .created(let createdResponse):
             switch(createdResponse.body){
