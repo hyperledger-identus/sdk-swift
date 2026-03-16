@@ -40,7 +40,7 @@ struct PrismDIDPublicKey {
         func id(index: Int) -> String {
             switch self {
             case .masterKey:
-                return "master\(index)"
+                return "master"
             case .issuingKey:
                 return "issuing\(index)"
             case .capabilityDelegationKey:
@@ -109,22 +109,10 @@ struct PrismDIDPublicKey {
             protoEC.curve = curve
             protoKey.keyData = .compressedEcKeyData(protoEC)
         case "secp256k1":
-            guard
-                let pointXStr = keyData.getProperty(.curvePointX),
-                let pointYStr = keyData.getProperty(.curvePointY),
-                let pointX = Data(base64URLEncoded: pointXStr),
-                let pointY = Data(base64URLEncoded: pointYStr)
-            else {
-                throw ApolloError.missingKeyParameters(missing: [
-                    KeyProperties.curvePointX.rawValue,
-                    KeyProperties.curvePointY.rawValue
-                ])
-            }
-            var protoEC = Io_Iohk_Atala_Prism_Protos_ECKeyData()
-            protoEC.x = pointX
-            protoEC.y = pointY
+            var protoEC = Io_Iohk_Atala_Prism_Protos_CompressedECKeyData()
+            protoEC.data = keyData.raw
             protoEC.curve = curve
-            protoKey.keyData = .ecKeyData(protoEC)
+            protoKey.keyData = .compressedEcKeyData(protoEC)
         default:
             throw ApolloError.missingKeyParameters(missing: [
                 KeyProperties.curvePointY.rawValue

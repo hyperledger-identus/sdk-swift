@@ -25,6 +25,29 @@ public extension DIDCommAgent {
         )
     }
 
+    /// Creates a deterministic Prism DID from a BIP-39 mnemonic phrase.
+    /// The same mnemonic + passphrase + didIndex always produces the same DID.
+    ///
+    /// - Parameters:
+    ///   - mnemonic: BIP-39 mnemonic words
+    ///   - passphrase: Optional BIP-39 passphrase (default: empty string)
+    ///   - didIndex: DID index in the derivation path (default: 0)
+    ///   - alias: An optional alias for the DID
+    /// - Returns: The deterministic DID
+    func createDeterministicPrismDID(
+        mnemonic: [String],
+        passphrase: String = "",
+        didIndex: Int = 0,
+        alias: String? = nil
+    ) async throws -> DID {
+        try await edgeAgent.createDeterministicPrismDID(
+            mnemonic: mnemonic,
+            passphrase: passphrase,
+            didIndex: didIndex,
+            alias: alias
+        )
+    }
+
     /// This method registers a Prism DID, that can be used to identify the agent and interact with other agents.
     /// - Parameters:
     ///   - did: the DID which will be registered.
