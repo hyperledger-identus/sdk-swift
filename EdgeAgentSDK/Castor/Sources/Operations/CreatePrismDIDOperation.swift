@@ -10,29 +10,25 @@ struct CreatePrismDIDOperation {
 
     func compute() throws -> DID {
         var operation = Io_Iohk_Atala_Prism_Protos_AtalaOperation()
-        guard keys.count(where: { $0.0 == .master} ) == 1 else {
+        guard let masterKeyPair = keys.first(where: { $0.0 == .master }) else {
             throw CastorError.requiresOneAndJustOneMasterKey
         }
-        let groupByPurpose = Dictionary(grouping: keys, by: { $0.0 })
+        guard let curve = masterKeyPair.1.getProperty(.curve) else {
+            throw CastorError.invalidPublicKeyCoding(didMethod: "prism", curve: "no curve")
+        }
+        // CreateDIDOperation only contains the master key with CompressedECKeyData.
+        // All other keys (authentication, issuance), services, and context
+        // must be added via subsequent UpdateDIDOperation.
+        let masterPrismKey = PrismDIDPublicKey(
+            apollo: apollo,
+            id: PrismDIDPublicKey.Usage.masterKey.id(index: 0),
+            curve: curve,
+            usage: .masterKey,
+            keyData: masterKeyPair.1
+        )
         operation.createDid = try createDIDAtalaOperation(
-            publicKeys: groupByPurpose.flatMap { (key, value) in
-                try value
-                    .sorted(by: { $0.1.identifier < $1.1.identifier } )
-                    .enumerated()
-                    .map {
-                        guard let curve = $0.element.1.getProperty(.curve) else {
-                            throw CastorError.invalidPublicKeyCoding(didMethod: "prism", curve: "no curve")
-                        }
-                        return PrismDIDPublicKey(
-                            apollo: apollo,
-                            id: key.toPrismDIDKeyPurpose().id(index: $0.offset),
-                            curve: curve,
-                            usage: key.toPrismDIDKeyPurpose(),
-                            keyData: $0.element.1
-                        )
-                    }
-            },
-            services: services
+            publicKeys: [masterPrismKey],
+            services: []
         )
         return try createLongFormFromOperation(method: method, atalaOperation: operation)
     }

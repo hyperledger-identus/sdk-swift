@@ -174,52 +174,6 @@ Could not find key in storage please use Castor instead and provide the private 
         return newDID
     }
 
-    /// Creates a deterministic Prism DID from a BIP-39 mnemonic phrase.
-    /// The same mnemonic + passphrase + didIndex always produces the same DID,
-    /// enabling stateless creation and recovery.
-    ///
-    /// Derives a single secp256k1 master key at HD path `m/29'/29'/didIndex'/1'/0'`
-    /// and creates a DID with only that master key using CompressedECKeyData.
-    ///
-    /// - Parameters:
-    ///   - mnemonic: BIP-39 mnemonic words
-    ///   - passphrase: Optional BIP-39 passphrase (default: empty string)
-    ///   - didIndex: DID index in the derivation path (default: 0)
-    ///   - alias: An optional alias for the DID
-    /// - Returns: The deterministic DID
-    func createDeterministicPrismDID(
-        mnemonic: [String],
-        passphrase: String = "",
-        didIndex: Int = 0,
-        alias: String? = nil
-    ) async throws -> DID {
-        let seed = try apollo.createSeed(mnemonics: mnemonic, passphrase: passphrase)
-        let masterPrivateKey = try apollo.createPrivateKey(parameters: [
-            KeyProperties.type.rawValue: "EC",
-            KeyProperties.seed.rawValue: seed.value.base64Encoded(),
-            KeyProperties.curve.rawValue: KnownKeyCurves.secp256k1.rawValue,
-            KeyProperties.derivationPath.rawValue: EdgeAgentDerivationPath(
-                didIndex: didIndex,
-                keyPurpose: .master,
-                keyIndex: 0
-            ).derivationPath.keyPathString()
-        ])
-
-        let newDID = try castor.createDID(
-            method: "prism",
-            keys: [(.master, masterPrivateKey.publicKey())],
-            services: []
-        )
-
-        try await registerPrismDID(
-            did: newDID,
-            privateKey: masterPrivateKey,
-            alias: alias
-        )
-
-        return newDID
-    }
-
     /// This method registers a Prism DID, that can be used to identify the agent and interact with other agents.
     /// - Parameters:
     ///   - did: the DID which will be registered.
