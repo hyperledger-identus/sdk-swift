@@ -110,7 +110,12 @@ struct PrismDIDPublicKey {
             protoKey.keyData = .compressedEcKeyData(protoEC)
         case "secp256k1":
             var protoEC = Io_Iohk_Atala_Prism_Protos_CompressedECKeyData()
-            protoEC.data = keyData.raw
+            // Use compressed representation (33 bytes) for CompressedECKeyData
+            guard let compressedB64 = keyData.getProperty(.compressedRaw),
+                  let compressedData = Data(base64Encoded: compressedB64) else {
+                throw ApolloError.missingKeyParameters(missing: [KeyProperties.compressedRaw.rawValue])
+            }
+            protoEC.data = compressedData
             protoEC.curve = curve
             protoKey.keyData = .compressedEcKeyData(protoEC)
         default:

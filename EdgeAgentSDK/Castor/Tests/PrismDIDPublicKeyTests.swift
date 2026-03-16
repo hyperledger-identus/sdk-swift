@@ -72,6 +72,58 @@ final class PrismDIDPublicKeyTests: XCTestCase {
         }
     }
 
+    func testSpecTestVectorRawSeedProducesExpectedDID() throws {
+        // Spec test vector from:
+        // https://github.com/input-output-hk/prism-did-method-spec/blob/main/extensions/deterministic-prism-did-generation-proposal.md#examples--test-vector
+        let specSeedHex = "3b32a5049f2b4e3af31ec5c1ae75fada1ad2eb8be5accf56ada343ad89eeb083208e538b3b97836e3bd7048c131421bf5bea9e3a1d25812a2d831e2bab89e058"
+        var specSeedData = Data()
+        var hexIndex = specSeedHex.startIndex
+        while hexIndex < specSeedHex.endIndex {
+            let nextIndex = specSeedHex.index(hexIndex, offsetBy: 2)
+            if let byte = UInt8(specSeedHex[hexIndex..<nextIndex], radix: 16) {
+                specSeedData.append(byte)
+            }
+            hexIndex = nextIndex
+        }
+
+        // Derive master key at m/29'/29'/0'/1'/0'
+        let derivationPath = DerivationPath(axis: [
+            .hardened(29), .hardened(29), .hardened(0), .hardened(1), .hardened(0)
+        ])
+
+        let masterPrivateKey = try apollo.createPrivateKey(parameters: [
+            KeyProperties.type.rawValue: "EC",
+            KeyProperties.curve.rawValue: KnownKeyCurves.secp256k1.rawValue,
+            KeyProperties.seed.rawValue: specSeedData.base64Encoded(),
+            KeyProperties.derivationPath.rawValue: derivationPath.keyPathString()
+        ])
+
+        // Verify the compressed public key matches the spec test vector
+        guard let compressedB64 = masterPrivateKey.publicKey().getProperty(.compressedRaw),
+              let compressedData = Data(base64Encoded: compressedB64) else {
+            XCTFail("Could not get compressed public key")
+            return
+        }
+        let compressedPubKeyHex = compressedData.map { String(format: "%02x", $0) }.joined()
+        XCTAssertEqual(compressedPubKeyHex, "023f7c75c9e5fba08fea1640d6faa3f8dc0151261d2b56026d46ddcbe1fc5a5bbb")
+
+        // Create DID via Castor — master-key-only CreateDID
+        let castor = CastorImpl(apollo: apollo)
+        let did = try castor.createPrismDID(masterPublicKey: masterPrivateKey.publicKey(), services: [])
+
+        // Extract canonical DID (short-form: did:prism:<hash>)
+        let parts = did.string.split(separator: ":")
+        let canonicalDID = "\(parts[0]):\(parts[1]):\(parts[2])"
+
+        // Verify the canonical DID matches the spec test vector exactly
+        let expectedCanonicalDID = "did:prism:35fbaf7f8a68e927feb89dc897f4edc24ca8d7510261829e4834d931e947e6ca"
+        XCTAssertEqual(canonicalDID, expectedCanonicalDID)
+
+        // Verify determinism: same key → same DID
+        let did2 = try castor.createPrismDID(masterPublicKey: masterPrivateKey.publicKey(), services: [])
+        XCTAssertEqual(did.string, did2.string)
+    }
+
     func testBackwardCompatParseECKeyData() throws {
         // Verify that parsing a proto with ECKeyData (old format) still works
         var protoEC = Io_Iohk_Atala_Prism_Protos_ECKeyData()
