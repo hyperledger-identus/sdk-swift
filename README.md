@@ -48,17 +48,17 @@ Identus Swift SDK provides the following building blocks to create, manage and r
 
 To get started with the Identus Swift SDK, you can set up the SDK and create a new project or integrate the SDK into an existing project. Before you start, make sure you have the following installed on your development machine:
 
-- Xcode 13.4 or later
-- MacOS 12 or later
-- iOS 15 or later
+* Xcode 13.4 or later
+* MacOS 12 or later
+* iOS 15 or later
 
 ### Integrating the SDK in an existing project
 
 To integrate the SDK into an existing project, you can use the Swift Package Manager, distributed with Xcode.
 
-1. Open your project in Xcode and select **File > Swift Packages > Add Package Dependency**.
-2. Enter the URL for the SDK for Swift Package Manager GitHub repo (`https://github.com/hyperledger-identus/sdk-swift/`) into the search bar and click **Next**.
-3. You'll see the repository rules for which version of the SDK you want Swift Package Manager to install. Choose the first rule, **Version**, and select **Up to Next Minor** as it will use the latest compatible version of the dependency that can be detected from the `main` branch, then click **Next**.
+1. Open your project in Xcode and select __File > Swift Packages > Add Package Dependency__.
+2. Enter the URL for the SDK for Swift Package Manager GitHub repo (`https://github.com/hyperledger-identus/sdk-swift/`) into the search bar and click __Next__.
+3. You'll see the repository rules for which version of the SDK you want Swift Package Manager to install. Choose the first rule, __Version__, and select __Up to Next Minor__ as it will use the latest compatible version of the dependency that can be detected from the `main` branch, then click __Next__.
 
 ### Swift Package Manager
 
