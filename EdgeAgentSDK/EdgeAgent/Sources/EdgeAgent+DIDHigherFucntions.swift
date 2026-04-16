@@ -85,7 +85,7 @@ Could not find key in storage please use Castor instead and provide the private 
         alias: String? = nil,
         services: [DIDDocument.Service] = []
     ) async throws -> DID {
-        let seed = self.seed
+        let seed = try await self.seed()
         let apollo = self.apollo
         let castor = self.castor
         var usingKeys = keys

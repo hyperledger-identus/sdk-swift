@@ -24,12 +24,13 @@ final class BackupWalletTests: XCTestCase {
         let castor = CastorImpl(apollo: apollo)
         let pluto = MockPluto()
         let pollux = MockPollux()
+        let seed = seed
         let agent = EdgeAgent(
             apollo: apollo,
             castor: castor,
             pluto: pluto,
             pollux: pollux,
-            seed: seed
+            seed: { seed }
         )
         return (agent, pluto)
     }
@@ -39,12 +40,13 @@ final class BackupWalletTests: XCTestCase {
         let castor = CastorImpl(apollo: apollo)
         let pluto = PlutoImpl(setup: .init(coreDataSetup: .init(modelPath: .storeName("PrismPluto"), storeType: .memory), keychain: KeychainMock()))
         let pollux = PolluxImpl(castor: castor, pluto: pluto)
+        let seed = seed
         let agent = EdgeAgent(
             apollo: apollo,
             castor: castor,
             pluto: pluto,
             pollux: pollux,
-            seed: seed
+            seed: { seed }
         )
         return (agent, pluto)
     }
