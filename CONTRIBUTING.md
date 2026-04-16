@@ -6,21 +6,21 @@ The following guidelines are for contributing to Edge Agent Swift SDK. These are
 #### Table Of Contents
 
 [What should I know before I get started?](#what-should-i-know-before-i-get-started)
-  * [Identus](#identus)
-  * [Edge Agent Swift SDK](#edge-agent-swift-sdk)
 
-[How Can I Contribute?](#how-can-i-contribute)
-  * [Your First Code Contribution](#your-first-code-contribution)
-  * [Pull Requests](#pull-requests)
-  * [Reporting Bugs](#reporting-bugs)
-  * [Suggesting Enhancements](#suggesting-enhancements)
+* [Identus](#identus)
+* [Edge Agent Swift SDK](#edge-agent-swift-sdk)
+
+* [Your First Code Contribution](#your-first-code-contribution)
+* [Pull Requests](#pull-requests)
+* [Reporting Bugs](#reporting-bugs)
+* [Suggesting Enhancements](#suggesting-enhancements)
 
 [Styleguides](#styleguides)
-  * [Git Commit Messages](#git-commit-messages)
-  * [Swift Styleguide](#swift-styleguide)
-  * [Documentation Styleguide](#documentation-styleguide)
-  
 
+* [Git Commit Messages](#git-commit-messages)
+* [Swift Styleguide](#swift-styleguide)
+* [Documentation Styleguide](#documentation-styleguide)
+  
 ## What should I know before I get started?
 
 ### Identus
@@ -47,10 +47,10 @@ Unsure where to begin contributing to Edge Agent Swift SDK? You can start by loo
 
 The process described here has several goals:
 
-- Maintain the SDK quality
-- Fix problems that are important to users
-- Engage the community in working toward the best possible product
-- Enable a sustainable system for the SDK maintainers to review contributions
+* Maintain the SDK quality
+* Fix problems that are important to users
+* Engage the community in working toward the best possible product
+* Enable a sustainable system for the SDK maintainers to review contributions
 
 Please follow these steps to have your contribution considered by the maintainers:
 
@@ -64,7 +64,7 @@ While the prerequisites above must be satisfied before your pull request is revi
 
 This section guides you through submitting a bug report for Edge Agent Swift SDK. Following these guidelines helps maintainers and the community understand your report :pencil:, reproduce the behaviour:computer: :computer:, and find related reports :mag_right:.
 
-Before creating bug reports, please check [this list](#before-submitting-a-bug-report), as you might not need to create one. When creating a bug report, please [include as many details as possible](#how-do-i-submit-a-good-bug-report). Fill out [the required template](https://github.com/hyperledger/identus-edge-agent-sdk-swift/blob/main/.github/ISSUE_TEMPLATE/1-bug-report.yaml), the information it asks for helps us resolve issues faster.
+Before creating bug reports, please check existing issues, as you might not need to create one. When creating a bug report, please include as many details as possible. Fill out [the required template](https://github.com/hyperledger/identus-edge-agent-sdk-swift/blob/main/.github/ISSUE_TEMPLATE/1-bug-report.yaml), the information it asks for helps us resolve issues faster.
 
 > **Note:** If you find a **Closed** issue that seems like the same thing you're experiencing, open a new issue and include a link to the original issue in the body of your new one.
 
@@ -94,9 +94,9 @@ Provide more context by answering these questions:
 
 This section guides you through submitting an enhancement suggestion for the SDK, including completely new features and minor improvements to existing functionality. Following these guidelines helps maintainers and the community understand your suggestion :pencil: and find related suggestions :mag_right:.
 
-Before creating enhancement suggestions, please check [this list](#before-submitting-an-enhancement-suggestion), as you might find out that you don't need to create one. When creating an enhancement suggestion, please [include as many details as possible](#how-do-i-submit-a-good-enhancement-suggestion). Fill in [the template](https://github.com/hyperledger/identus-edge-agent-sdk-swift/blob/main/.github/ISSUE_TEMPLATE/2-feature-request.yaml), including the steps that you imagine you would take if the feature you're requesting existed.
+Before creating enhancement suggestions, please check existing issues, as you might find out that you don't need to create one. When creating an enhancement suggestion, please include as many details as possible. Fill in [the template](https://github.com/hyperledger/identus-edge-agent-sdk-swift/blob/main/.github/ISSUE_TEMPLATE/2-feature-request.yaml), including the steps that you imagine you would take if the feature you're requesting existed.
 
-* Most importantly, **check if you're using the latest version.** 
+* Most importantly, **check if you're using the latest version.**
 * **Perform a cursory search** to see if the enhancement has already been suggested. If it has, comment on the existing issue instead of opening a new one.
 
 Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com/features/issues/). Create an issue on that repository and provide the following information:
@@ -131,13 +131,12 @@ Each commit message consists of a **header**, a **body**, and a **footer**.
 <footer>
 ```
 
-The `header` is mandatory and must conform to the [Commit Message Header](#commit-header) format.
+The `header` is mandatory and must conform to the [Commit Message Header](#commit-message-header) format.
 
 The `body` is mandatory for all commits except those of type "docs".
 When the body is present, it must be at least 20 characters long and must conform to the [Commit Message Body](#commit-body) format.
 
 The `footer` is optional. The [Commit Message Footer](#commit-footer) format describes what the footer is used for and the structure it must have.
-
 
 #### Commit Message Header
 
@@ -153,7 +152,6 @@ The `footer` is optional. The [Commit Message Footer](#commit-footer) format des
 
 The `<type>` and `<summary>` fields are mandatory, the `(<scope>)` field is optional.
 
-
 ##### Type
 
 Must be one of the following:
@@ -167,8 +165,8 @@ Must be one of the following:
 * **refactor**: A code change that neither fixes a bug nor adds a feature
 * **test**: Adding missing tests or correcting existing tests
 
-
 ##### Scope
+
 The scope should be the name of the affected module or building block
 (as perceived by the person reading the changelog generated from commit messages).
 
@@ -189,14 +187,12 @@ Use the summary field to provide a succinct description of the change:
 * don't capitalize the first letter
 * no dot (.) at the end
 
-
 #### <a name="commit-body"></a>Commit Message Body
 
 Just as in the summary, use the imperative, present tense: "fix", not "fixed" nor "fixes".
 
 Explain the motivation for the change in the commit message body. This commit message should explain _why_ you are making the change.
 You can include a comparison of the previous behaviour with the new behaviour to illustrate the change's impact.
-
 
 #### <a name="commit-footer"></a>Commit Message Footer
 

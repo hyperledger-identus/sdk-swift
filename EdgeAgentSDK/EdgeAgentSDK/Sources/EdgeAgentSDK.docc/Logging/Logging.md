@@ -56,5 +56,3 @@ This will output the following log messages:
 2022-04-07T18:20:17+0100 debug [ io.prism.swift.sdk.apollo ] : TestKey={Random generated identifier 1} Test equal masked metadata
 2022-04-07T18:20:17+0100 debug [ io.prism.swift.sdk.apollo ] : TestKey={Random generated identifier 2} Test different masked metadata
 ```
-
-

@@ -19,7 +19,6 @@ The recovery solutions for this error are:
 - Check if the given words are valid English words.
 - Verify if the order of the words is correct.
 
-
 ## Error 2: Could Not Parse Message String
 
 Code: 12
@@ -36,7 +35,6 @@ The recovery solutions for this error are:
 - Check if the message string is not empty.
 - Check if the message string contains only valid characters.
 - Verify if the encoding of the message string is correct.
-
 
 ## Error 3: Invalid JWK Error
 
