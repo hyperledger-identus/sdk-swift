@@ -1,0 +1,2 @@
+# SC2034: Unused variable — false positive for vars used by external tools
+disable=SC2034
