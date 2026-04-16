@@ -8,7 +8,7 @@ import Foundation
 /// a provided Mediator Service Endpoint and seed data.
 public class EdgeAgent {
     /// Represents the seed data used to create a unique DID.
-    public let seed: Seed
+    public let seed: () async throws -> Seed
 
     let logger = SDKLogger(category: LogComponent.edgeAgent)
     public let apollo: Apollo & KeyRestoration
@@ -29,36 +29,46 @@ public class EdgeAgent {
     ///   - pluto: An instance of Pluto.
     ///   - pollux: An instance of Pollux.
     ///   - mercury: An instance of Mercury.
-    ///   - seed: A unique seed used to generate the unique DID.
-    ///   - mediatorServiceEnpoint: The endpoint of the Mediator service to use.
+    ///   - seed: A seed builder that will be called when the SDK requires to use the seed. If nil the SDK will create a random seed and use that.
     public init(
         apollo: Apollo & KeyRestoration,
         castor: Castor,
         pluto: Pluto,
         pollux: Pollux & CredentialImporter,
-        seed: Seed? = nil
+        seed: (() async throws -> Seed)? = nil
     ) {
         self.apollo = apollo
         self.castor = castor
         self.pluto = pluto
         self.pollux = pollux
-        self.seed = seed ?? apollo.createRandomSeed().seed
+        if let seed {
+            self.seed = seed
+        } else {
+            let usingSeed = apollo.createRandomSeed().seed
+            self.seed = { usingSeed }
+        }
     }
 
     /**
       Convenience initializer for `EdgeAgent` that allows for optional initialization of seed data and mediator service endpoint.
 
       - Parameters:
-        - seedData: Optional seed data for creating a new seed. If not provided, a random seed will be generated.
-        - mediatorServiceEnpoint: Optional DID representing the service endpoint of the mediator. If not provided, the default Prism mediator endpoint will be used.
+        - seedDataBuilder: Optional seed builder that will be called when the SDK requires to use the seed. If nil the SDK will create a random seed and use that.
     */
-    public convenience init(seedData: Data? = nil) {
+    public convenience init(seedData: (() async throws -> Data)? = nil) {
         let apollo = ApolloBuilder().build()
         let castor = CastorBuilder(apollo: apollo).build()
         let pluto = PlutoBuilder().build()
         let pollux = PolluxBuilder(pluto: pluto, castor: castor).build()
 
-        let seed = seedData.map { Seed(value: $0) } ?? apollo.createRandomSeed().seed
+        let seed: () async throws -> Seed
+        if let seedData {
+            seed = { try await Seed(value: seedData()) }
+        } else {
+            let seedData = apollo.createRandomSeed().seed
+            seed = { seedData }
+        }
+
         self.init(
             apollo: apollo,
             castor: castor,

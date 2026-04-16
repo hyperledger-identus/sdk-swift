@@ -39,7 +39,8 @@ final class PrismOnboardingInvitationTests: XCTestCase {
             apollo: apollo,
             castor: CastorBuilder(apollo: apollo).build(),
             pluto: MockPluto(),
-            pollux: MockPollux()
+            pollux: MockPollux(),
+            seed: nil
         )
         let didcommAgent = DIDCommAgent(
             edgeAgent: edgeAgent,
@@ -62,7 +63,8 @@ final class PrismOnboardingInvitationTests: XCTestCase {
             apollo: apollo,
             castor: CastorBuilder(apollo: apollo).build(),
             pluto: MockPluto(),
-            pollux: MockPollux()
+            pollux: MockPollux(),
+            seed: nil
         )
         let didcommAgent = DIDCommAgent(
             edgeAgent: edgeAgent,
