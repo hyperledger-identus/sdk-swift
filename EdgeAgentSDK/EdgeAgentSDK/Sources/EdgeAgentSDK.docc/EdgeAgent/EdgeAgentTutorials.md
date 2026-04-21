@@ -62,6 +62,7 @@ let did = try? await agent.createNewPrismDID(
     )
 ])
 ```
+
 - `registerPrismDID`: This method registers a pre-existing Prism DID in the agent's storage. It takes a `DID` object and a `keyPathIndex` used to identify the DID, and an optional `alias` that can be used to identify the DID. It assumes the seed given in the initialization was used to create the DID.
 
 ```swift

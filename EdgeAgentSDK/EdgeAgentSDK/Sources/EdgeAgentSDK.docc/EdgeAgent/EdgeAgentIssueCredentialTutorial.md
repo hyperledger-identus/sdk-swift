@@ -34,6 +34,7 @@ func issueCredential(
 ```
 
 ### Parameters
+
 | Parameter | Description |
 |------------|-------------|
 | `issuerDID` | The DID of the entity issuing the credential. |
@@ -41,7 +42,9 @@ func issueCredential(
 | `claims` | A closure used to build the VC payload using structured claim builders. |
 
 ### Returns
+
 A `Credential` object containing:
+
 - `jwt` or `sdjwt` representation (depending on type)
 - Decoded payload as JSON
 - Cryptographic proof metadata
@@ -84,11 +87,13 @@ edgeAgent.issueCredential(
 ### Example Output
 
 **JWT Token:**
+
 ```
 eyJhbGciOiJFUzI1NksifQ.eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvbnMvY3JlZGVudGlhbHMvdjIiXSwiY3JlZGVudGlhbFN1YmplY3QiOnsiYXBwcm92ZWQiOnRydWUsImdyYWRlcyI6eyJlbmdsaXNoIjo5LjksIm1hdGhlbWF0aWMiOjgsInBoeXNpY3MiOjcuMn0sImlkIjoiZGlkOmV4YW1wbGU6c3ViamVjdCIsIm5hbWUiOiJKb2huIERvZSIsInByb2Zlc3NvcnMiOlsiUHJvZmVzc29yIEphbmUgRG9lIiwiUHJvZmVzc29yIEpvc2VmIERvZSJdfSwiaXNzdWVyIjoiZGlkOmV4YW1wbGU6aXNzdWVyIiwibmFtZSI6IlVuaXZlcnNpdHkgRGVncmVlIiwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCJdfQ.JYw5aTJrEvXuTKIsM0vJbezd_7Pc_eBvrMSWF9tPQB2gRv083DAVtnDe9-gYavUANx6bD3rtCGqWEWO-M0cjag
 ```
 
 **Decoded Payload:**
+
 ```json
 {
   "@context": ["https://www.w3.org/ns/credentials/v2"],
@@ -151,11 +156,13 @@ edgeAgent.issueCredential(
 ### Example Output
 
 **SD-JWT Token:**
+
 ```
 eyJhbGciOiJFUzI1NksifQ.eyIiOnsidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCJdLCJpc3N1ZXIiOiJkaWQ6ZXhhbXBsZTppc3N1ZXIiLCJuYW1lIjoiVW5pdmVyc2l0eSBEZWdyZWUiLCJAY29udGV4dCI6WyJodHRwczpcL1wvd3d3LnczLm9yZ1wvbnNcL2NyZWRlbnRpYWxzXC92MiJdLCJjcmVkZW50aWFsU3ViamVjdCI6eyJfc2QiOlsiOWVlYU95VFUzQUVKMnZkdHk5MnJmZ2JLdmFIQ2ZWLUtKUm01NlI0RlVvTSIsIm1JNmlVLVVDcU1VdFF5UFJUXzY1UktNZ2lPZjZJZ1YxTU1xYkJPQVVxbFEiLCJ5RUozX2JiQzlOdzVycXlLNWsxRklGUUFKcDAwVTZWWXhCZ1NwWDlyaHhFIiwiZkpncnpJZnd0ejE2ekpEczYyYjl1OENxYzMxNlhHVVhLYkdHV0Rsb0FWcyJdLCJpZCI6ImRpZDpleGFtcGxlOnN1YmplY3QifX0sIl9zZF9hbGciOiJzaGEtMjU2In0.3Zg3tQnTXOy_apKw14yrzYynIOH-mJMZ3Wi6Lod-0oWRMDq7aAVpoB5Jj_4u6tyGF6kzQ2iZG8DgKqveWeXSCw~...
 ```
 
 **Hashed Payload (issued credential):**
+
 ```json
 {
   "": {
@@ -178,6 +185,7 @@ eyJhbGciOiJFUzI1NksifQ.eyIiOnsidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCJdLCJpc3N1Z
 ```
 
 **Disclosed Payload (after holder reveals claims):**
+
 ```json
 {
   "": {

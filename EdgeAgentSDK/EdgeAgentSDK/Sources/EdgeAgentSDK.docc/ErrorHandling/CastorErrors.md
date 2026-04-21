@@ -32,7 +32,7 @@ The recovery solutions for this error are:
 - Check if the Long form prism DID is valid.
 - Verify if the Long form prism DID has been changed.
 
-### Error 3: Method ID Does Not Satisfy Regex
+###  Error 3: Method ID Does Not Satisfy Regex
 
 Code: 23
 Message: "The Prism DID provided is not passing the regex validation: {regex}"
@@ -41,7 +41,7 @@ This error occurs when the Prism DID provided is not passing the regex validatio
 
 - The Prism DID is not passing the regex validation.
 
-## Error 4: Invalid Public Key Coding
+##  Error 4: Invalid Public Key Coding
 
 Code: 24
 Message: "Invalid encoding/decoding of key ({curve}) while trying to compute {didMethod}"
@@ -56,7 +56,7 @@ The recovery solutions for this error are:
 - Verify if there is valid encoding/decoding of the key.
 - Check if the DID method is correct.
 
-## Error 5: Invalid DID String
+##  Error 5: Invalid DID String
 
 Code: 25
 Message: "Trying to parse invalid DID String: {str}"
@@ -100,7 +100,7 @@ The recovery solutions for this error are:
 - Check if the Prism DID is resolvable.
 - Verify if there is an issue with the resolver.
 
-## Error 8: Invalid JWK Error
+##  Error 8: Invalid JWK Error
 
 Code: 28
 Message: "JWK is not in a valid format"
