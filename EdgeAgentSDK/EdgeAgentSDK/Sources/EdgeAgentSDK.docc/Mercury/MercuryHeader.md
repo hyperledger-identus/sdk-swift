@@ -10,7 +10,7 @@ DIDCommV2 is a secure, privacy-preserving messaging protocol that allows for the
 
 With Mercury, developers can easily establish and manage trusted, peer-to-peer connections between DIDs, allowing for secure and private communication across a range of platforms and use cases. Whether you are building a messaging app, a decentralized social network, or any other application that requires secure and private communications, Mercury provides the tools and features you need to get the job done.
 
-Mercury also provides a range of advanced features, including support for message threading, priority levels, and message expiration, as well as support for a range of transport protocols, including HTTP. 
+Mercury also provides a range of advanced features, including support for message threading, priority levels, and message expiration, as well as support for a range of transport protocols, including HTTP.
 
 ## Topics
 
