@@ -73,7 +73,7 @@ public class DIDCommAgent {
         - mediatorServiceEnpoint: Optional DID representing the service endpoint of the mediator. If not provided, the default Prism mediator endpoint will be used.
     */
     public convenience init(
-        seedData: Data? = nil,
+        seedData: (() async throws -> Data)? = nil,
         mediatorDID: DID
     ) {
         let edgeAgent = EdgeAgent(seedData: seedData)

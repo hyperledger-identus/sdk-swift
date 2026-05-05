@@ -56,6 +56,7 @@ extension EdgeAgent {
      - Note: The backup's security is heavily dependent on the secrecy and strength of the seed used to initialize the wallet. Users must ensure that their seed is kept in a secure location and never shared.
      */
     public func backupWallet() async throws -> String {
+        let seed = try await self.seed()
         let backup = Backup(
             keys: try await backupKeys(),
             linkSecret: try await backupLinkSecret(),
@@ -105,6 +106,7 @@ extension EdgeAgent {
      - Note: The accuracy of the wallet recovery is entirely reliant on the backup being created and encrypted correctly, as well as the wallet being initialized with the same seed used during backup. Users must ensure that the seed and encrypted backup are securely stored and handled.
      */
     public func recoverWallet(encrypted: String) async throws {
+        let seed = try await seed()
         let masterKey = try self.apollo.createPrivateKey(parameters: [
             KeyProperties.type.rawValue: "EC",
             KeyProperties.curve.rawValue: KnownKeyCurves.x25519.rawValue,
