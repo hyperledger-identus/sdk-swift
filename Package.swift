@@ -60,7 +60,7 @@ let package = Package(
         .package(url: "https://github.com/beatt83/jose-swift.git", from: "6.0.0"),
         .package(url: "https://github.com/beatt83/peerdid-swift.git", from: "3.0.1"),
         .package(url: "https://github.com/input-output-hk/anoncreds-rs.git", exact: "0.4.1"),
-        .package(url: "https://github.com/hyperledger/identus-apollo.git", exact: "1.8.0"),
+        .package(url: "https://github.com/hyperledger/identus-apollo.git", exact: "1.8.7"),
         .package(url: "https://github.com/KittyMac/Sextant.git", exact: "0.4.31"),
         .package(url: "https://github.com/kylef/JSONSchema.swift.git", exact: "0.6.0"),
         .package(url: "https://github.com/eu-digital-identity-wallet/eudi-lib-sdjwt-swift.git", from: "0.10.0"),
