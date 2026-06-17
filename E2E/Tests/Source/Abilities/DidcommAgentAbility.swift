@@ -92,12 +92,13 @@ class DidcommAgentAbility: Ability {
             .core: .error
         ])
         
+        let seed = seed
         let edgeAgent = EdgeAgent(
             apollo: apollo,
             castor: castor,
             pluto: pluto,
             pollux: pollux,
-            seed: seed
+            seed: { seed }
         )
         
         didcommAgent = DIDCommAgent(
