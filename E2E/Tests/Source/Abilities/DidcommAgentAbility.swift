@@ -97,7 +97,7 @@ class DidcommAgentAbility: Ability {
             castor: castor,
             pluto: pluto,
             pollux: pollux,
-            seed: seed
+            seed: { seed }
         )
         
         didcommAgent = DIDCommAgent(

@@ -134,7 +134,7 @@ class EdgeAgentWorkflow {
                 )
                 break
             case "prism/jwt":
-                let seed = sdk.didcommAgent.edgeAgent.seed
+                let seed = try await sdk.didcommAgent.edgeAgent.seed()
                 let privateKey = try sdk.didcommAgent.apollo.createPrivateKey(parameters: [
                     KeyProperties.type.rawValue: "EC",
                     KeyProperties.curve.rawValue: KnownKeyCurves.secp256k1.rawValue,
@@ -249,7 +249,7 @@ class EdgeAgentWorkflow {
             description: "creates a backup"
         ) { sdk in
             let backup = try await sdk.didcommAgent.edgeAgent.backupWallet()
-            let seed = sdk.didcommAgent.edgeAgent.seed
+            let seed = try await sdk.didcommAgent.edgeAgent.seed()
             try await edgeAgent.remember(key: "backup", value: backup)
             try await edgeAgent.remember(key: "seed", value: seed)
         }
